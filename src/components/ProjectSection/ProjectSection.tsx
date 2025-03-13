@@ -85,12 +85,14 @@ function ProjectSection() {
                                 </div>
                                 <br />
                                 <div className="progress-bar">
-                                    <div className="progress-fill"style={{ width: `${(project.raised / project.goal) * 100}%` }}></div>
+                                    <div className="progress-fill" style={{ width: `${(project.raised / project.goal) * 100}%` }}></div>
                                 </div>
                             </div>
-                            <button className="donate-button">
-                                <a href="/donationDetails">บริจาค</a>
-                            </button>
+                            <a href="/donationDetails">
+                                <button className="donate-button">
+                                    บริจาค
+                                </button>
+                            </a>
                         </div>
                     </div>
                 ))}

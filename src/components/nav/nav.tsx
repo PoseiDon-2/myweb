@@ -4,9 +4,9 @@ import Link from "next/link";
 function nav() {
     return (
         <nav className="navbar">
-            <Link href="/">
+            <a href="/">
                 <div className="logo">Donation Platform</div>
-            </Link>
+            </a>
             <ul className="menu">
                 <li><a href="#">คำขอรับบริจาค</a></li>
                 <li><a href="#">วิธีใช้งาน</a></li>
