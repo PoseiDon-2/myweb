@@ -11,6 +11,7 @@ function nav() {
                 <li><a href="#">คำขอรับบริจาค</a></li>
                 <li><a href="#">วิธีใช้งาน</a></li>
                 <li><a href="#">ติดต่อเรา</a></li>
+                <li><a href="/admin">แอดมิน</a></li>
             </ul>
             <div className="auth-buttons">
                 <button className="login">ล็อกอิน</button>
