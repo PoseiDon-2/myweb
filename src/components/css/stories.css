@@ -1,0 +1,245 @@
+/* Stories Container */
+.stories-container {
+    width: 100%;
+    padding: 2.5rem 1rem;
+    background: #f9fafb;
+}
+
+/* Stories Header */
+.stories-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+}
+
+/* Stories List */
+.stories-list {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 0 1rem 1rem;
+    scroll-behavior: smooth;
+}
+
+.stories-list::-webkit-scrollbar {
+    height: 5px;
+}
+
+.stories-list::-webkit-scrollbar-thumb {
+    background: #bfdbfe;
+    border-radius: 2.5px;
+}
+
+.story-item {
+    flex: 0 0 90px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.story-item:hover {
+    transform: scale(1.05);
+}
+
+.story-thumbnail {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 0.75rem;
+}
+
+.story-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #4f46e5, #7c3aed, #ec4899);
+    padding: 2px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.03); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.7; }
+}
+
+.story-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+
+.story-title {
+    font-size: 0.85rem;
+    color: #374151;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Story Modal */
+.story-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000; /* ปรับให้สูงมากเพื่ออยู่เหนือ Navbar */
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.story-close {
+    position: absolute;
+    top: 1.5rem; /* ปรับให้ห่างจากขอบบน */
+    right: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    color: #000;
+    transition: background 0.3s ease, transform 0.3s ease;
+    z-index: 1010; /* สูงกว่า Modal เพื่อให้คลิกได้ */
+}
+
+.story-close:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+
+.story-progress {
+    position: absolute;
+    top: 4rem; /* ปรับให้ต่ำลงเพื่อหลบ Navbar */
+    left: 2rem;
+    right: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1005;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 1.5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #fff;
+    transition: width 0.05s linear;
+}
+
+.story-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    transition: background 0.3s ease;
+    z-index: 1005;
+}
+
+.story-nav:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.story-nav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.story-nav-left {
+    left: 1.5rem;
+}
+
+.story-nav-right {
+    right: 1.5rem;
+}
+
+.story-controls {
+    position: absolute;
+    bottom: 5rem;
+    left: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    z-index: 1005;
+}
+
+.control-button {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    transition: background 0.3s ease;
+}
+
+.control-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.story-content {
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    height: 600px;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.story-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    color: #fff;
+    text-align: left;
+    z-index: 1005;
+}
+
+.caption-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.caption-text {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+    .story-content {
+        max-width: 100%;
+        height: 80vh;
+    }
+    .story-progress {
+        left: 1rem;
+        right: 1rem;
+        top: 3.5rem; /* ปรับให้ต่ำลงในหน้าจอเล็ก */
+    }
+    .story-nav-left { left: 0.5rem; }
+    .story-nav-right { right: 0.5rem; }
+    .story-controls { left: 0.5rem; bottom: 4rem; }
+    .story-close { top: 1rem; right: 1rem; }
+}
