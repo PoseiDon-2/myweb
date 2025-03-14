@@ -1,13 +1,15 @@
-import Nav from '@/components/nav/nav';
+import Nav from "@/components/nav/nav";
+import Header from "@/components/header/header";
+import ProjectSection from "@/components/ProjectSection/ProjectSection";
+import Footer from "@/components/footer/footer";
 
 export default function HomePage() {
     return (
         <div>
             <Nav />
-        <section>
-            <h1 className="text-2xl font-bold">Welcome to My Next.js App</h1>
-            <p>This is the home page.</p>
-        </section>
+            <Header />
+            <ProjectSection />
+            <Footer />
         </div>
     );
 }

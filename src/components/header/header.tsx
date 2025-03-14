@@ -21,7 +21,8 @@ function header({ onSearch }: HeaderProps = {}) {
                 <p>แพลตฟอร์มที่เชื่อมโยงผู้บริจาคกับคุณครูที่ต้องการการสนับสนุน เพื่อพัฒนาการศึกษาของเด็กไทย</p>
                 <div className="donation-buttons">
                     <button className="search-request">ค้นหาคำขอรับบริจาค</button>
-                    <button className="create-request">สร้างคำขอรับบริจาค</button>
+                    <a href="/creator-registration"><button className="create-request">สร้างคำขอรับบริจาค</button></a>
+                    
                 </div>
             </div>
             <div className="donation-right">

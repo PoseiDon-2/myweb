@@ -1,0 +1,27 @@
+@import "tailwindcss";
+/* ปุ่มลูกศรที่มุมซ้ายบน */
+button.ghost {
+    background-color: transparent; /* พื้นหลังโปร่งใส */
+    border: none; /* ไม่มีขอบ */
+    padding: 8px; /* ระยะห่างภายใน */
+    transition: background-color 0.3s ease; /* เอฟเฟกต์การเปลี่ยน */
+}
+
+button.ghost:hover {
+    background-color: #f3f4f6; /* สีเทาอ่อนเมื่อ hover */
+    border-radius: 9999px; /* วงกลมเต็ม */
+}
+
+.arrow-left {
+    height: 24px; /* ขนาดไอคอน */
+    width: 24px;
+}
+
+/* ปรับ Card เพื่อรองรับตำแหน่ง absolute */
+.card {
+    position: relative; /* ทำให้ปุ่ม absolute อยู่ในขอบเขตของการ์ด */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
