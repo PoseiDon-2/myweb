@@ -1,20 +1,20 @@
 import "@/components/css/nav.css";
-
+import Link from "next/link";
 
 function nav() {
     return (
         <nav className="navbar">
-            <a href="/">
+            <Link href="/">
                 <div className="logo">Donation Platform</div>
-            </a>
+            </Link>
             <ul className="menu">
-                <li><a href="#">คำขอรับบริจาค</a></li>
-                <li><a href="#">วิธีใช้งาน</a></li>
-                <li><a href="#">ติดต่อเรา</a></li>
+                <li><Link href="#">คำขอรับบริจาค</Link></li>
+                <li><Link href="#">วิธีใช้งาน</Link></li>
+                <li><Link href="#">ติดต่อเรา</Link></li>
             </ul>
             <div className="auth-buttons">
-                <a href="/login"><button className="login">ล็อกอิน</button></a>
-                <a href="/register"><button className="register">ลงทะเบียน</button></a>
+                <Link href="/login"><button className="login">ล็อกอิน</button></Link>
+                <Link href="/register"><button className="register">ลงทะเบียน</button></Link>
             </div>
         </nav>
     )

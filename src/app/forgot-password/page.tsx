@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import "./page.css"
 
 export default function ForgotPasswordPage() {
-    const router = useRouter()
+    
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
 
