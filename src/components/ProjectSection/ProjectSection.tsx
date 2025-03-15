@@ -1,8 +1,10 @@
 import "@/components/css/ProjectSection.css";
+import Image from "next/image";
+import Link from "next/link";
 
 // กำหนด TypeScript interfaces
 interface Project {
-    id: number;
+    id: string;
     image: string;
     school: string;
     province: string;
@@ -20,7 +22,7 @@ interface Summary {
 function ProjectSection() {
     const projects: Project[] = [
         {
-            id: 1,
+            id: "1",
             image: "/placeholder.svg?height=270&width=400", // ปรับให้มี placeholder ถ้า image ว่าง
             school: "โรงเรียนบ้านน้ำใส",
             province: "จังหวัดเชียงใหม่",
@@ -29,7 +31,7 @@ function ProjectSection() {
             raised: 35000,
         },
         {
-            id: 2,
+            id: "2",
             image: "/placeholder.svg?height=270&width=400",
             school: "โรงเรียนดอยสูง",
             province: "จังหวัดแม่ฮ่องสอน",
@@ -38,7 +40,7 @@ function ProjectSection() {
             raised: 40000,
         },
         {
-            id: 3,
+            id: "3",
             image: "/placeholder.svg?height=270&width=400",
             school: "โรงเรียนปลายฟ้า",
             province: "จังหวัดน่าน",
@@ -72,7 +74,15 @@ function ProjectSection() {
                 {projects.map((project) => (
                     <div key={project.id} className="project-card">
                         <div className="card-image">
-                            <img src={project.image || "/placeholder.svg?height=270&width=400"} alt={project.school} />
+
+                            <Image
+                                src={project.image || "/placeholder.svg?height=270&width=400"}
+                                alt={project.school}
+                                width={400}
+                                height={270}
+                                layout="intrinsic"
+                            />
+
                         </div>
                         <div className="card-content">
                             <h3>{project.school}</h3>
@@ -85,14 +95,17 @@ function ProjectSection() {
                                 </div>
                                 <br />
                                 <div className="progress-bar">
-                                    <div className="progress-fill" style={{ width: `${(project.raised / project.goal) * 100}%` }}></div>
+                                    <div
+                                        className="progress-fill"
+                                        style={{ width: `${Math.min((project.raised / project.goal) * 100, 100)}%` }}
+                                    ></div>
                                 </div>
                             </div>
-                            <a href="/donationDetails">
+                            <Link href="/donationDetails">
                                 <button className="donate-button">
                                     บริจาค
                                 </button>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 ))}

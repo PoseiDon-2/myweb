@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
+import { useRouter } from "next/navigation" 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,15 +18,19 @@ export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
 
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault()
-        setIsLoading(true)
+    const router = useRouter(); // เพิ่มตัวแปร
 
-        // Simulate sending reset email
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setIsLoading(true);
+    
         setTimeout(() => {
-            setIsLoading(false)
-            setIsSubmitted(true)
-        }, 1500)
+            setIsLoading(false);
+            setIsSubmitted(true);
+            
+            // นำทางไปที่หน้า login หลังจากส่งลิงก์สำเร็จ
+            setTimeout(() => router.push("/login"), 2000);
+        }, 1500);
     }
 
     return (
