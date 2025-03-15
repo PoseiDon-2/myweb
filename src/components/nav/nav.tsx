@@ -1,5 +1,5 @@
 import "@/components/css/nav.css";
-import Link from "next/link";
+
 
 function nav() {
     return (
