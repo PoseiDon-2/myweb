@@ -95,10 +95,14 @@ export default function DonationStories() {
 
   useEffect(() => {
     if (videoRef.current && activeStory?.type === "video") {
-      videoRef.current.muted = isMuted;
-      isPaused ? videoRef.current.pause() : videoRef.current.play().catch((e) => console.log("Video error:", e));
+      if (isPaused) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(() => console.log("Video playback error"));
+      }
     }
-  }, [isMuted, isPaused, activeStory]);
+  }, [isPaused, activeStory]);
+  
 
   const openStory = (story: Story) => {
     setActiveStory(story);
@@ -106,6 +110,10 @@ export default function DonationStories() {
     setProgress(0);
     setIsPaused(false);
   };
+
+  useEffect(() => {
+    setProgress(0); // รีเซ็ต progress ทันทีเมื่อเปลี่ยน story
+  }, [activeStory]);
 
   const closeStory = () => {
     setActiveStory(null);
@@ -123,13 +131,16 @@ export default function DonationStories() {
 
   const handleNextStory = () => {
     if (currentStoryIndex < STORIES_DATA.length - 1) {
-      setActiveStory(STORIES_DATA[currentStoryIndex + 1]);
-      setCurrentStoryIndex((prev) => prev + 1);
       setProgress(0);
+      setTimeout(() => { // หน่วงเวลาเล็กน้อยเพื่อให้ transition ลื่นขึ้น
+        setActiveStory(STORIES_DATA[currentStoryIndex + 1]);
+        setCurrentStoryIndex(currentStoryIndex + 1);
+      }, 200);
     } else {
       closeStory();
     }
   };
+
 
   const togglePause = () => setIsPaused((prev) => !prev);
   const toggleMute = () => setIsMuted((prev) => !prev);

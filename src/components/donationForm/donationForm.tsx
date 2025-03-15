@@ -6,10 +6,7 @@ export default function DonationForm() {
     const [amount, setAmount] = useState("1000")
     const [customAmount, setCustomAmount] = useState(false)
 
-    interface DonationFormProps {
-        amount: string;
-        customAmount: boolean;
-    }
+
 
     const handleAmountChange = (value: string) => {
         setAmount(value)
