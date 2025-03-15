@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -20,7 +19,7 @@ export default function VerifyOTPPage() {
     useEffect(() => {
         // Focus the first input on mount
         if (inputRefs.current[0]) {
-            inputRefs.current[0].focus()
+            inputRefs.current[0]?.focus() // Optional chaining for safety
         }
     }, [])
 
@@ -34,14 +33,14 @@ export default function VerifyOTPPage() {
 
         // Move to next input if current input is filled
         if (value && index < 5 && inputRefs.current[index + 1]) {
-            inputRefs.current[index + 1].focus()
+            inputRefs.current[index + 1]?.focus() // Use optional chaining to avoid type error
         }
     }
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
         // Move to previous input on backspace if current input is empty
         if (e.key === "Backspace" && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
-            inputRefs.current[index - 1].focus()
+            inputRefs.current[index - 1]?.focus() // Optional chaining for safety
         }
     }
 
@@ -56,7 +55,7 @@ export default function VerifyOTPPage() {
 
             // Focus the last input
             if (inputRefs.current[5]) {
-                inputRefs.current[5].focus()
+                inputRefs.current[5]?.focus() // Optional chaining for safety
             }
         }
     }
@@ -83,7 +82,7 @@ export default function VerifyOTPPage() {
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">Verify your email</CardTitle>
                     <CardDescription className="text-center">
-                        We&apos;ve sent a 6-digit code to your email. Enter the code below to verify your account.
+                        We've sent a 6-digit code to your email. Enter the code below to verify your account.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
@@ -92,7 +91,9 @@ export default function VerifyOTPPage() {
                             {otp.map((digit, index) => (
                                 <Input
                                     key={index}
-                                    ref={(el) => (inputRefs.current[index] = el)}
+                                    ref={(el) => {
+                                        inputRefs.current[index] = el;
+                                    }}
                                     type="text"
                                     inputMode="numeric"
                                     maxLength={1}
@@ -118,7 +119,7 @@ export default function VerifyOTPPage() {
                             )}
                         </Button>
                         <div className="text-center text-sm">
-                            Didn&apos;t receive the code?{" "}
+                            Didn't receive the code?{" "}
                             <Button variant="link" className="p-0 h-auto" onClick={handleResendOTP}>
                                 Resend OTP
                             </Button>
@@ -129,4 +130,3 @@ export default function VerifyOTPPage() {
         </div>
     )
 }
-
