@@ -23,7 +23,7 @@ function ProjectSection() {
     const projects: Project[] = [
         {
             id: "1",
-            image: "/placeholder.svg?height=270&width=400", // ปรับให้มี placeholder ถ้า image ว่าง
+            image: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg", // ปรับให้มี placeholder ถ้า image ว่าง
             school: "โรงเรียนบ้านน้ำใส",
             province: "จังหวัดเชียงใหม่",
             description: "สนับสนุนอุปกรณ์การเรียนสำหรับเด็กในพื้นที่ห่างไกล",
@@ -32,7 +32,7 @@ function ProjectSection() {
         },
         {
             id: "2",
-            image: "/placeholder.svg?height=270&width=400",
+            image: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
             school: "โรงเรียนดอยสูง",
             province: "จังหวัดแม่ฮ่องสอน",
             description: "ปรับปรุงห้องสมุดโรงเรียน",
@@ -41,7 +41,7 @@ function ProjectSection() {
         },
         {
             id: "3",
-            image: "/placeholder.svg?height=270&width=400",
+            image: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
             school: "โรงเรียนปลายฟ้า",
             province: "จังหวัดน่าน",
             description: "สร้างสนามเด็กเล่นใหม่",
