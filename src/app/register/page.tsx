@@ -1,33 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-
-import "./page.css"
+import "./page.css";
 
 export default function RegisterPage() {
-    const router = useRouter()
-    const [isLoading, setIsLoading] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
+    const [termsAccepted, setTermsAccepted] = useState(false); // เพิ่ม state สำหรับ Checkbox
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault()
-        setIsLoading(true)
+        event.preventDefault();
 
-        // Simulate registration and OTP sending
-        setTimeout(() => {
-            setIsLoading(false)
-            router.push("/verify-otp")
-        }, 1500)
+        // ตรวจสอบว่า Checkbox ถูกติ๊กหรือไม่
+        if (!termsAccepted) {
+            setError("กรุณายอมรับ terms and conditions");
+            return;
+        }
+
+        setIsLoading(true);
+        setError("");
+
+        const formData = new FormData(event.currentTarget);
+        const fname = formData.get("fname") as string;
+        const lname = formData.get("lname") as string;
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+
+        try {
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    fname,
+                    lname,
+                    email,
+                    password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
+            }
+
+            setIsLoading(false);
+            router.push("/verify-otp");
+        } catch (err: unknown) {
+            setIsLoading(false);
+            setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
+        }
     }
 
     return (
@@ -39,24 +76,31 @@ export default function RegisterPage() {
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
+                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="firstName">First name</Label>
-                                <Input id="firstName" placeholder="John" required />
+                                <Input id="fname" name="fname" placeholder="John" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="lastName">Last name</Label>
-                                <Input id="lastName" placeholder="Doe" required />
+                                <Input id="lname" name="lname" placeholder="Doe" required />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="name@example.com" required />
+                            <Input id="email" name="email" type="email" placeholder="name@example.com" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
                             <div className="relative">
-                                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" required />
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    required
+                                />
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -69,7 +113,11 @@ export default function RegisterPage() {
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Checkbox id="terms" required />
+                            <Checkbox
+                                id="terms"
+                                checked={termsAccepted} // ควบคุมสถานะ
+                                onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} // อัพเดท state
+                            />
                             <Label htmlFor="terms" className="text-sm">
                                 I agree to the{" "}
                                 <Link href="/terms" className="text-primary hover:underline">
@@ -99,6 +147,5 @@ export default function RegisterPage() {
                 </form>
             </Card>
         </div>
-    )
+    );
 }
-
