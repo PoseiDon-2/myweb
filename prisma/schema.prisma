@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"  // หรือ sqlite, mysql ตามฐานข้อมูลคุณ
+  provider = "mysql"  // หรือ sqlite, mysql ตามฐานข้อมูลคุณ
   url      = env("DATABASE_URL")
 }
 
