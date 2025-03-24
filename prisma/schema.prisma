@@ -1,19 +1,19 @@
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "postgresql"  // หรือ sqlite, mysql ตามฐานข้อมูลคุณ
+  url      = env("DATABASE_URL")
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  fname     String
-  lname     String
-  email     String   @unique
-  password  String   
-  otp        String?  // รหัส OTP (nullable เพราะจะถูกลบหลังยืนยัน)
-  isVerified Boolean  @default(false) // สถานะการยืนยัน
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  fname       String
+  lname       String
+  email       String   @unique
+  password    String
+  otp         String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
