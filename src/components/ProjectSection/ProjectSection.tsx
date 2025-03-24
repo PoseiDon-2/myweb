@@ -110,7 +110,10 @@ function ProjectSection() {
                     </div>
                 ))}
             </div>
+            <Link href="/donationRequestsPage">
             <button className="more-button">ดูเพิ่มเติม</button>
+            </Link>
+            
 
             <section className="how-it-works">
                 <h1>วิธีการใช้งานแพลตฟอร์ม</h1>
@@ -124,7 +127,10 @@ function ProjectSection() {
                             <li>ทำการชำระเงินผ่านช่องทางที่สะดวก</li>
                             <li>ติดตามความคืบหน้าของโครงการ</li>
                         </ol>
+                        <Link href="/donationRequestsPage">
                         <button>เริ่มบริจาค</button>
+                        </Link>
+                        
                     </div>
                     <div>
                         <h4>สำหรับคุณครู</h4>

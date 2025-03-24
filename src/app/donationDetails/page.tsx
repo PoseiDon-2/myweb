@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Share2, Heart, Calendar, Users, BookOpen, Trophy } from "lucide-react";
+import Link from "next/link";
 import DonationForm from "@/components/donationForm/donationForm";
 import DonationStories from "@/components/donationForm/donation-stories";
 import Nav from "@/components/nav/nav";
@@ -79,11 +81,23 @@ export default function DonationDetailsPage() {
             <Nav />
             <div className="donation-page">
                 <div className="page-container">
+                    <Link href="/" className="back-link">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="absolute top-4 left-4 p-2 text-gray-700 hover:bg-gray-100 rounded-full">
+                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </Button>
+                    </Link>
+
                     <div className="grid-layout">
                         {/* Left Column - Main Content */}
                         <div className="fade-in">
                             {/* Header */}
                             <div className="header">
+
                                 <div className="logo-container">
                                     <Image src={projectData.logo} alt="โลโก้โรงเรียน" fill />
                                 </div>

@@ -48,11 +48,21 @@ export default function LoginPage() {
 
     return (
         <div className="flex items-center justify-center min-h-screen p-4">
+            <Button
+                type="button"
+                variant="ghost"
+                className="absolute top-4 left-4 p-2 text-gray-700 hover:bg-gray-100 rounded-full"
+                onClick={() => window.location.href = '/'}
+            >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </Button>
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">เข้าสู่ระบบ</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your email and password to login to your account
+                        กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบบัญชีของคุณ
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
@@ -70,9 +80,9 @@ export default function LoginPage() {
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">รหัสผ่าน</Label>
                                 <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                                    Forgot password?
+                                    ลืมรหัสผ่าน?
                                 </Link>
                             </div>
                             <div className="relative">
@@ -102,14 +112,14 @@ export default function LoginPage() {
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Logging in...
+                                    กำลังเข้าสู่ระบบ...
                                 </>
                             ) : (
                                 "Login"
                             )}
                         </Button>
                         <div className="text-center text-sm">
-                            Don&apos;t have an account?{" "}
+                            ยังไม่มีบัญชีใช่ไหม?{" "}
                             <Link href="/register" className="text-primary hover:underline">
                                 Register
                             </Link>

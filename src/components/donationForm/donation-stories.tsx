@@ -126,9 +126,6 @@ export default function DonationStories() {
     }
   }, [isPaused, activeStory]);
 
-  // Third useEffect (Duplicate progress bar logic) - Line ~146
-  // Note: This seems redundant; I'll consolidate it with the first useEffect
-  // Removed the duplicate useEffect since it’s identical to the first one
 
   const openStory = (story: Story) => {
     setActiveStory(story);

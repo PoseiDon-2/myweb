@@ -1,3 +1,4 @@
+import "../app/globals.css";
 export const metadata = {
   title: "My Website", // ตั้งค่า Title หลักของเว็บ
   description: "This is my awesome website using Next.js",

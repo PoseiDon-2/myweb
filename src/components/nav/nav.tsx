@@ -48,7 +48,7 @@ function Nav() {
                 <div className="logo">Donation Platform</div>
             </Link>
             <ul className="menu">
-                <li><Link href="#">คำขอรับบริจาค</Link></li>
+                <li><Link href="/donationRequestsPage">คำขอรับบริจาค</Link></li>
                 <li><Link href="#">วิธีใช้งาน</Link></li>
                 <li><Link href="#">ติดต่อเรา</Link></li>
             </ul>
@@ -64,9 +64,9 @@ function Nav() {
                         </div>
                         {dropdownOpen && (
                             <ul className="dropdown-menu">
-                                <li><Link href="/profile">โปรไฟล์</Link></li>
-                                <li><Link href="/donation-history">ประวัติการบริจาค</Link></li>
-                                <li><Link href="/tracking">การติดตาม</Link></li>
+                                <li><Link href="#">โปรไฟล์</Link></li>
+                                <li><Link href="#">ประวัติการบริจาค</Link></li>
+                                <li><Link href="#">การติดตาม</Link></li>
                                 <li>
                                     <button className="logout-btn" onClick={handleLogout}>
                                         ออกจากระบบ
