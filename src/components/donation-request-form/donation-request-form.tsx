@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import Image from "next/image";
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -223,7 +224,7 @@ export default function DonationRequestForm() {
                     <CardContent className="p-6">
                         {formData.image && (
                             <div className="mb-4 rounded-md overflow-hidden">
-                                <img
+                                <Image
                                     src={formData.image || "/placeholder.svg"}
                                     alt="รูปภาพประกอบ"
                                     className="w-full h-70 object-cover"

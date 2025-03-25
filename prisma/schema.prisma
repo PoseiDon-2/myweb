@@ -8,13 +8,94 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  fname       String
-  lname       String
-  email       String   @unique
-  password    String
-  otp         String?
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  fname             String
+  lname             String
+  email             String   @unique
+  password          String
+  otp               String?
+  isVerified        Boolean  @default(false)
+  resetToken        String?  // Token สำหรับรีเซ็ตรหัสผ่าน
+  resetTokenExpires DateTime? // วันหมดอายุของ token
+  createdAt         DateTime @default(now())
 }
 
+model DonationRequest {
+  id           String   @id @default(uuid())
+  schoolName   String
+  projectTitle String
+  description  String
+  category     String
+  targetAmount Float
+  deadline     DateTime?
+  contactName  String
+  contactPhone String
+  contactEmail String
+  image        String?
+  creatorId    String
+  createdAt    DateTime @default(now())
+}
+
+model Creator {
+  id                String   @id @default(uuid()) // ใช้ String(uuid()) ให้ตรงกับ creatorId ใน DonationRequest
+  firstName         String
+  lastName          String
+  email             String   @unique
+  phone             String
+  schoolName        String
+  schoolDistrict    String
+  position          String
+  schoolAddress     String   @db.Text
+  licenseFileUrl    String?  // URL จาก Cloudinary
+  positionFileUrl   String?  // URL จาก Cloudinary
+  isVerified        Boolean  @default(false)
+  termsAccepted     Boolean  @default(false)
+  privacyAccepted   Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+}
+
+model Story {
+  id        String   @id @default(uuid()) // ใช้ UUID แทน number เพื่อความยืดหยุ่น
+  title     String
+  thumbnail String   // URL ของ thumbnail
+  media     String   // URL ของสื่อหลัก (image หรือ placeholder ถ้าเป็น video)
+  type      String   // "image" หรือ "video"
+  videoUrl  String?  // URL วิดีโอ (nullable ถ้าเป็น image)
+  caption   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Donation {
+  id            String   @id @default(uuid()) // ใช้ UUID เพื่อความยืดหยุ่น
+  amount        Float    // จำนวนเงินบริจาค (เก็บเป็น Float)
+  name          String   // ชื่อ-นามสกุลผู้บริจาค
+  email         String   // อีเมลสำหรับใบเสร็จ
+  phone         String   // เบอร์โทรศัพท์
+  message       String?  // ข้อความถึงโรงเรียน (nullable)
+  taxReceipt    Boolean  @default(false) // ต้องการใบเสร็จลดหย่อนภาษี
+  isAnonymous   Boolean  @default(false) // บริจาคโดยไม่ประสงค์ออกนาม
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Tracking {
+  id           String   @id @default(uuid())
+  type         String   // ประเภทการติดตาม เช่น "donation", "creator"
+  referenceId  String   // ID ของตารางที่อ้างอิง (เช่น Donation.id, Creator.id)
+  status       String   // สถานะ เช่น "pending", "completed", "rejected"
+  details      String?  // รายละเอียดเพิ่มเติม (เช่น ข้อความจาก admin)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+}
+
+model DonationSummary {
+  id                String   @id @default(uuid())
+  totalAmount       Float    // จำนวนเงินบริจาคทั้งหมด (บาท)
+  totalDonors       Int      // จำนวนผู้บริจาคทั้งหมด (คน)
+  totalRequests     Int      // จำนวนคำขอรับบริจาคทั้งหมด (คำขอ)
+  updatedAt         DateTime @default(now()) // วันที่อัพเดทข้อมูลล่าสุด
+}

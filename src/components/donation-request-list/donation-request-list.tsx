@@ -29,7 +29,7 @@ const mockDonationRequests = [
         amountRaised: 12500,
         deadline: "2023-12-15",
         urgency: "เร่งด่วน",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 120,
     },
     {
@@ -42,7 +42,7 @@ const mockDonationRequests = [
         amountRaised: 37500,
         deadline: "2023-11-30",
         urgency: "เร่งด่วนมาก",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 250,
     },
     {
@@ -55,7 +55,7 @@ const mockDonationRequests = [
         amountRaised: 42000,
         deadline: "2023-12-31",
         urgency: "ปานกลาง",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 180,
     },
     {
@@ -68,7 +68,7 @@ const mockDonationRequests = [
         amountRaised: 15000,
         deadline: "2023-11-15",
         urgency: "เร่งด่วนมาก",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 210,
     },
     {
@@ -81,7 +81,7 @@ const mockDonationRequests = [
         amountRaised: 22000,
         deadline: "2023-12-20",
         urgency: "ปานกลาง",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 150,
     },
     {
@@ -94,7 +94,7 @@ const mockDonationRequests = [
         amountRaised: 28000,
         deadline: "2023-12-10",
         urgency: "เร่งด่วน",
-        imageUrl: "/placeholder.svg?height=200&width=300",
+        imageUrl: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
         studentCount: 130,
     },
 ]
@@ -140,7 +140,7 @@ export function DonationRequestList() {
                                 className="object-cover"
                             />
                             <div className="absolute top-2 right-2">
-                                <Badge variant="secondary" className="flex items-center gap-1">
+                                <Badge variant="secondary" className="flex items-center gap-1 bg-white p-2">
                                     <span className={`w-2 h-2 rounded-full ${getUrgencyColor(request.urgency)}`}></span>
                                     {request.urgency}
                                 </Badge>
@@ -158,7 +158,7 @@ export function DonationRequestList() {
 
                         <CardContent className="flex-1">
                             <div className="space-y-4">
-                                <Badge>{request.category}</Badge>
+                                <Badge className="bg-orange-400 text-white p-2">{request.category}</Badge>
 
                                 <p className="text-sm line-clamp-3">{request.description}</p>
 
@@ -187,7 +187,7 @@ export function DonationRequestList() {
 
                         <CardFooter>
                             <Link href="/donationDetails">
-                                <Button className="w-full">
+                                <Button className="w-full bg-blue-500  text-white">
                                     ดูรายละเอียด <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>

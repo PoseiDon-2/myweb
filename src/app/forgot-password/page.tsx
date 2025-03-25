@@ -1,36 +1,58 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useRouter } from "next/navigation" 
-import { useState } from "react"
-import Link from "next/link"
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import "./page.css"
+import "./page.css";
 
 export default function ForgotPasswordPage() {
-    
-    const [isLoading, setIsLoading] = useState(false)
-    const [isSubmitted, setIsSubmitted] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const router = useRouter(); // เพิ่มตัวแปร
+    const router = useRouter();
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setIsLoading(true);
-    
-        setTimeout(() => {
-            setIsLoading(false);
+        setError(null);
+
+        const formData = new FormData(event.currentTarget);
+        const email = formData.get("email") as string;
+
+        try {
+            const response = await fetch("/api/forgot-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to send reset link");
+            }
+
             setIsSubmitted(true);
-            
-            // นำทางไปที่หน้า login หลังจากส่งลิงก์สำเร็จ
+
+            // นำทางไปที่หน้า login หลังจาก 2 วินาที
             setTimeout(() => router.push("/login"), 2000);
-        }, 1500);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("เกิดข้อผิดพลาดในการส่งลิงก์รีเซ็ต กรุณาลองใหม่");
+            }
+            console.error("Error:", err);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -47,8 +69,9 @@ export default function ForgotPasswordPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" placeholder="name@example.com" required />
+                                <Input id="email" name="email" type="email" placeholder="name@example.com" required />
                             </div>
+                            {error && <p className="text-red-500 text-sm">{error}</p>}
                         </CardContent>
                         <CardFooter className="flex flex-col space-y-4">
                             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -85,6 +108,5 @@ export default function ForgotPasswordPage() {
                 )}
             </Card>
         </div>
-    )
+    );
 }
-
