@@ -217,7 +217,7 @@ export default function DonationDetailsPage() {
                         {/* Right Column - Donation Form */}
                         <div>
                             <div className="sidebar fade-in" style={{ animationDelay: "0.3s" }}>
-                                <DonationForm />
+                                <DonationForm requestId="exampleRequestId" walletAddress="exampleWalletAddress" />
                                 <div className="sidebar-card">
                                     <h3>แชร์โครงการนี้</h3>
                                     <div className="button-group">
