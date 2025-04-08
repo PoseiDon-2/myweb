@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
+import Tesseract from "tesseract.js";
 
 export async function POST(request: Request) {
     try {
@@ -19,9 +20,31 @@ export async function POST(request: Request) {
         await writeFile(path, buffer);
 
         const url = `/uploads/${fileName}`;
-        return NextResponse.json({ url }, { status: 200 });
+
+        // สร้าง worker ด้วย path ที่ชัดเจน
+        const workerPath = resolve(process.cwd(), "node_modules", "tesseract.js", "src", "worker-script", "node", "index.js");
+        const worker = await Tesseract.createWorker("eng+tha", 1, {
+            workerPath,
+            logger: (m) => console.log(m), // ดูความคืบหน้า
+        });
+
+        // อ่านข้อความจากสลิป
+        const { data: { text } } = await worker.recognize(path);
+        await worker.terminate(); // ปิด worker หลังใช้งาน
+
+        console.log("Extracted Text from Slip:", text);
+
+        // ดึงจำนวนเงินจากสลิป
+        const amountMatch = text.match(/(\d+\.\d{2})/);
+        const extractedAmount = amountMatch ? parseFloat(amountMatch[0]) : null;
+
+        return NextResponse.json({
+            url,
+            extractedAmount,
+            rawText: text,
+        }, { status: 200 });
     } catch (error) {
         console.error("Upload Error:", error);
-        return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to upload or process slip" }, { status: 500 });
     }
 }

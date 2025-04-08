@@ -1,3 +1,5 @@
+export const dynamic = 'auto'; // หรือลบออก เพราะ Prisma ทำให้ dynamic อยู่แล้ว
+
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,9 +9,9 @@ import DonationForm from "@/components/donationForm/donationForm";
 import DonationStories from "@/components/donationForm/donation-stories";
 import Nav from "@/components/nav/nav";
 import Footer from "@/components/footer/footer";
-import "./donationDetails.css"; // สมมติว่าคุณใช้ CSS เดิมจากที่ผมให้ไป
+import { prisma } from "@/lib/prisma";
+import "./donationDetails.css";
 
-// กำหนด TypeScript interfaces สำหรับข้อมูล
 interface DonationProject {
     title: string;
     subtitle: string;
@@ -25,55 +27,109 @@ interface DonationProject {
     outcomes: { title: string; description: string; icon: React.ComponentType }[];
     updates: { title: string; date: string; description: string; color?: string }[];
     donorList: { name: string; initial: string; date: string; amount: number; color: string }[];
-    contact: {
-        coordinator: string;
-        email: string;
-        phone: string;
-    };
+    contact: { coordinator: string; email: string; phone: string };
+    requestId: string;
+    walletAddress: string;
 }
 
-// ข้อมูลตัวอย่าง (สมมติว่านี่คือข้อมูลที่ดึงมา)
-const projectData: DonationProject = {
-    title: "โครงการจัดหาอุปกรณ์คอมพิวเตอร์เพื่อการเรียนรู้",
-    subtitle: "โรงเรียนวิทยาศาสตร์ตัวอย่าง จังหวัดกรุงเทพมหานคร",
-    category: "โครงการพัฒนาการศึกษา",
-    logo: "/img/logo.jpg",
-    mainImage: "/img/mario-heller-hXLkFpvKRys-unsplash-1024x683.jpg",
-    raised: 350000,
-    goal: 500000,
-    donors: 125,
-    daysLeft: 30,
-    about: [
-        "โครงการจัดหาอุปกรณ์คอมพิวเตอร์เพื่อการเรียนรู้ มีวัตถุประสงค์เพื่อจัดหาคอมพิวเตอร์และอุปกรณ์การเรียนรู้ด้านเทคโนโลยีให้กับนักเรียนในโรงเรียนวิทยาศาสตร์ตัวอย่าง เพื่อเพิ่มโอกาสในการเรียนรู้และพัฒนาทักษะด้านเทคโนโลยีที่จำเป็นในศตวรรษที่ 21",
-        "ปัจจุบันโรงเรียนมีคอมพิวเตอร์ที่ใช้งานได้เพียง 15 เครื่องสำหรับนักเรียนกว่า 300 คน ทำให้นักเรียนไม่สามารถเข้าถึงการเรียนรู้ด้านเทคโนโลยีได้อย่างทั่วถึง โครงการนี้จะช่วยให้โรงเรียนสามารถจัดหาคอมพิวเตอร์เพิ่มเติมอีก 30 เครื่อง พร้อมอุปกรณ์ประกอบการเรียนรู้ที่จำเป็น",
-    ],
-    budget: [
-        { item: "คอมพิวเตอร์สำหรับการเรียนการสอน 30 เครื่อง", amount: 350000 },
-        { item: "อุปกรณ์ต่อพ่วงและซอฟต์แวร์การเรียนรู้", amount: 100000 },
-        { item: "การปรับปรุงห้องปฏิบัติการคอมพิวเตอร์", amount: 50000 },
-    ],
-    outcomes: [
-        { title: "เพิ่มโอกาสการเข้าถึง", description: "นักเรียนกว่า 300 คนจะได้เข้าถึงคอมพิวเตอร์เพื่อการเรียนรู้", icon: Users },
-        { title: "พัฒนาทักษะดิจิทัล", description: "นักเรียนจะได้พัฒนาทักษะด้านเทคโนโลยีที่จำเป็น", icon: BookOpen },
-        { title: "ยกระดับคุณภาพการศึกษา", description: "เพิ่มประสิทธิภาพการเรียนการสอนด้านวิทยาศาสตร์และเทคโนโลยี", icon: Trophy },
-    ],
-    updates: [
-        { title: "เริ่มโครงการระดมทุน", date: "15 มี.ค. 2025", description: "โรงเรียนวิทยาศาสตร์ตัวอย่างได้เริ่มโครงการระดมทุนเพื่อจัดหาอุปกรณ์คอมพิวเตอร์ โดยมีเป้าหมายระดมทุน 500,000 บาท" },
-        { title: "ได้รับการสนับสนุนจากบริษัทเทคโนโลยี", date: "28 มี.ค. 2025", description: "บริษัทเทคโนโลยีชั้นนำได้ร่วมบริจาคเงินสนับสนุนโครงการจำนวน 200,000 บาท พร้อมเสนอส่วนลดพิเศษสำหรับการจัดซื้ออุปกรณ์", color: "green" },
-    ],
-    donorList: [
-        { name: "บริษัท เทคโนโลยี จำกัด", initial: "บ", date: "28 มี.ค. 2025", amount: 200000, color: "blue" },
-        { name: "สมาคมศิษย์เก่า", initial: "ส", date: "20 มี.ค. 2025", amount: 100000, color: "green" },
-        { name: "คุณสมชาย ใจดี", initial: "ค", date: "18 มี.ค. 2025", amount: 50000, color: "purple" },
-    ],
-    contact: {
-        coordinator: "อาจารย์สมศรี รักการศึกษา",
-        email: "somsri@school.ac.th",
-        phone: "02-123-4567",
-    },
+const calculateDaysRemaining = (deadline?: Date | null) => {
+    if (!deadline) return 0;
+    const today = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
 };
 
-export default function DonationDetailsPage() {
+export default async function DonationDetailsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // ปรับให้เป็น Promise
+}) {
+    const resolvedSearchParams = await searchParams; // Resolve Promise
+    const requestId = resolvedSearchParams.id as string | undefined;
+
+    if (!requestId) {
+        return (
+            <div>
+                <Nav />
+                <div className="donation-page">
+                    <div className="page-container">
+                        <p className="text-center py-8">กรุณาเลือกคำขอรับบริจาค</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    const donationRequest = await prisma.donationRequest.findUnique({
+        where: { id: requestId },
+        include: {
+            creator: true,
+            donations: true,
+            budgets: true,
+            outcomes: true,
+            updates: true,
+        },
+    });
+
+    if (!donationRequest) {
+        return (
+            <div>
+                <Nav />
+                <div className="donation-page">
+                    <div className="page-container">
+                        <p className="text-center py-8">ไม่พบคำขอรับบริจาคนี้</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    const projectData: DonationProject = {
+        title: donationRequest.projectTitle,
+        subtitle: donationRequest.schoolName,
+        category: donationRequest.category,
+        logo: "/img/default-logo.jpg",
+        mainImage: donationRequest.image || "/img/placeholder.jpg",
+        raised: donationRequest.currentAmount,
+        goal: donationRequest.targetAmount,
+        donors: donationRequest.donations.length,
+        daysLeft: calculateDaysRemaining(donationRequest.deadline),
+        about: [donationRequest.description],
+        budget: donationRequest.budgets.map((budget) => ({
+            item: budget.item,
+            amount: budget.amount,
+        })),
+        outcomes: donationRequest.outcomes.map((outcome, index) => ({
+            title: outcome.title,
+            description: outcome.description,
+            icon: index % 3 === 0 ? Users : index % 3 === 1 ? BookOpen : Trophy,
+        })),
+        updates: donationRequest.updates.map((update, index) => ({
+            title: update.title,
+            date: update.date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }),
+            description: update.description,
+            color: index % 2 === 0 ? undefined : "green",
+        })),
+        donorList: donationRequest.donations.map((donation, index) => ({
+            name: donation.name,
+            initial: donation.name.charAt(0),
+            date: donation.createdAt.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }),
+            amount: donation.amount,
+            color: index % 3 === 0 ? "blue" : index % 3 === 1 ? "green" : "purple",
+        })),
+        contact: {
+            coordinator: donationRequest.contactName,
+            email: donationRequest.contactEmail,
+            phone: donationRequest.contactPhone,
+        },
+        requestId: donationRequest.id,
+        walletAddress: donationRequest.walletAddress,
+    };
+
     const percentage = Math.round((projectData.raised / projectData.goal) * 100);
 
     return (
@@ -85,7 +141,8 @@ export default function DonationDetailsPage() {
                         <Button
                             type="button"
                             variant="ghost"
-                            className="absolute top-4 left-4 p-2 text-gray-700 hover:bg-gray-100 rounded-full">
+                            className="absolute top-4 left-4 p-2 text-gray-700 hover:bg-gray-100 rounded-full"
+                        >
                             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                             </svg>
@@ -93,11 +150,8 @@ export default function DonationDetailsPage() {
                     </Link>
 
                     <div className="grid-layout">
-                        {/* Left Column - Main Content */}
                         <div className="fade-in">
-                            {/* Header */}
                             <div className="header">
-
                                 <div className="logo-container">
                                     <Image src={projectData.logo} alt="โลโก้โรงเรียน" fill />
                                 </div>
@@ -111,12 +165,9 @@ export default function DonationDetailsPage() {
                                 </div>
                             </div>
                             <DonationStories />
-                            {/* Main Image */}
                             <div className="main-image">
                                 <Image src={projectData.mainImage} alt="ภาพโครงการ" fill />
                             </div>
-
-                            {/* Progress Bar */}
                             <div className="progress-section">
                                 <div className="progress-header">
                                     <div>
@@ -142,8 +193,6 @@ export default function DonationDetailsPage() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Tabs Content */}
                             <Tabs defaultValue="details" className="tabs-container">
                                 <TabsList className="tabs-list">
                                     <TabsTrigger value="details" className="tabs-trigger">รายละเอียด</TabsTrigger>
@@ -161,7 +210,9 @@ export default function DonationDetailsPage() {
                                         <h2 className="section-title">การใช้เงินบริจาค</h2>
                                         <ul className="section-list">
                                             {projectData.budget.map((item, index) => (
-                                                <li key={index}>{item.item} (฿{item.amount.toLocaleString()})</li>
+                                                <li key={index}>
+                                                    {item.item} (฿{item.amount.toLocaleString()})
+                                                </li>
                                             ))}
                                         </ul>
                                     </div>
@@ -213,11 +264,9 @@ export default function DonationDetailsPage() {
                                 </TabsContent>
                             </Tabs>
                         </div>
-
-                        {/* Right Column - Donation Form */}
                         <div>
                             <div className="sidebar fade-in" style={{ animationDelay: "0.3s" }}>
-                                <DonationForm requestId="exampleRequestId" walletAddress="exampleWalletAddress" />
+                                <DonationForm requestId={projectData.requestId} walletAddress={projectData.walletAddress} />
                                 <div className="sidebar-card">
                                     <h3>แชร์โครงการนี้</h3>
                                     <div className="button-group">
@@ -233,20 +282,24 @@ export default function DonationDetailsPage() {
                                 </div>
                                 <div className="sidebar-card">
                                     <h3>ติดต่อผู้ดูแลโครงการ</h3>
-                                    <div className="contact-info">
-                                        <p>
-                                            <span>ชื่อผู้ประสานงาน:</span>
-                                            <span>{projectData.contact.coordinator}</span>
-                                        </p>
-                                        <p>
-                                            <span>อีเมล:</span>
-                                            <span>{projectData.contact.email}</span>
-                                        </p>
-                                        <p>
-                                            <span>โทรศัพท์:</span>
-                                            <span>{projectData.contact.phone}</span>
-                                        </p>
-                                    </div>
+                                    {projectData.contact ? (
+                                        <div className="contact-info">
+                                            <p>
+                                                <span>ชื่อผู้ประสานงาน:</span>
+                                                <span>{projectData.contact.coordinator || "ไม่ระบุ"}</span>
+                                            </p>
+                                            <p>
+                                                <span>อีเมล:</span>
+                                                <span>{projectData.contact.email || "ไม่ระบุ"}</span>
+                                            </p>
+                                            <p>
+                                                <span>โทรศัพท์:</span>
+                                                <span>{projectData.contact.phone || "ไม่ระบุ"}</span>
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <p className="section-text">ไม่มีข้อมูลผู้ติดต่อ</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

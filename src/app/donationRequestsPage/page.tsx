@@ -1,9 +1,12 @@
-import { DonationRequestList } from "@/components/donation-request-list/donation-request-list"
-import { SearchFilters } from "@/components/search-filters/search-filters"
+// app/donations/page.tsx
+"use client";
 
+import { DonationRequestList } from "@/components/donation-request-list/donation-request-list";
+import { SearchFilters } from "@/components/search-filters/search-filters";
 import Nav from "@/components/nav/nav";
 import Footer from "@/components/footer/footer";
-import "./page.css"
+import "./page.css";
+
 export default function DonationRequestsPage() {
     return (
         <div>
@@ -20,7 +23,5 @@ export default function DonationRequestsPage() {
             </div>
             <Footer />
         </div>
-
-    )
+    );
 }
-

@@ -2,40 +2,37 @@
 
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import Tesseract from "tesseract.js";
 import "@/components/css/donationForm.css";
 
-// ฟังก์ชันสร้าง PromptPay Payload
+// ฟังก์ชันสร้าง PromptPay Payload (คงเดิม)
 const generatePromptPayPayload = (phone: string, amount: number) => {
     if (!/^\d{10}$/.test(phone)) {
         throw new Error("Phone number must be 10 digits");
     }
 
-    const phoneFormatted = `00${phone.replace(/^0/, "66")}`; // เช่น 0812345678 -> 660812345678
-    const formattedAmount = amount.toFixed(2); // เช่น 1000 -> 1000.00
+    const phoneFormatted = `00${phone.replace(/^0/, "66")}`;
+    const formattedAmount = amount.toFixed(2);
 
-    // คำนวณความยาวของ PromptPay Merchant Info
     const merchantInfo = `0016A00000067701011101${phoneFormatted.length}${phoneFormatted}`;
     const merchantLength = merchantInfo.length.toString().padStart(2, "0");
 
-    // สร้าง Payload
     const basePayload = [
-        "000201", // Payload Format Indicator
-        "010211", // Static QR
-        `29${merchantLength}${merchantInfo}`, // PromptPay Merchant Info
-        "52040000", // Merchant Category Code
-        "5303764", // Currency Code (THB)
-        `54${formattedAmount.length.toString().padStart(2, "0")}${formattedAmount}`, // Amount
-        "5802TH", // Country Code
-        "6304", // Checksum Placeholder
+        "000201",
+        "010211",
+        `29${merchantLength}${merchantInfo}`,
+        "52040000",
+        "5303764",
+        `54${formattedAmount.length.toString().padStart(2, "0")}${formattedAmount}`,
+        "5802TH",
+        "6304",
     ].join("");
 
     const crc = calculateCRC(basePayload);
-    console.log("Payload (before CRC):", basePayload); // ดีบัก
-    console.log("CRC:", crc); // ดีบัก
     return `${basePayload}${crc}`;
 };
 
-// ฟังก์ชันคำนวณ CRC16
+// ฟังก์ชันคำนวณ CRC16 (คงเดิม)
 const calculateCRC = (payload: string): string => {
     let crc = 0xffff;
     const polynomial = 0x1021;
@@ -67,13 +64,16 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
     const [loading, setLoading] = useState(false);
     const [qrPayload, setQrPayload] = useState<string>("");
     const [qrError, setQrError] = useState<string | null>(null);
+    const [slipText, setSlipText] = useState<string>("");
+    const [extractedAmount, setExtractedAmount] = useState<number | null>(null);
+    const [extractedDateTime, setExtractedDateTime] = useState<Date | null>(null);
+    const [extractedReference, setExtractedReference] = useState<string | null>(null);
 
     useEffect(() => {
         setQrError(null);
         if (amount && parseFloat(amount) > 0) {
             try {
                 const payload = generatePromptPayPayload(walletAddress, parseFloat(amount));
-                console.log("Final QR Payload:", payload); // ดีบัก
                 setQrPayload(payload);
             } catch (error) {
                 setQrError((error as Error).message);
@@ -93,9 +93,55 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
         setAmount("");
     };
 
-    const handleSlipUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setSlipFile(e.target.files[0]);
+    const handleSlipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSlipFile(file);
+
+            setLoading(true);
+            try {
+                const { data: { text } } = await Tesseract.recognize(file, "eng+tha", {
+                    logger: (m) => console.log(m),
+                });
+                console.log("Extracted Text from Slip:", text);
+                setSlipText(text);
+
+                // ดึงจำนวนเงิน
+                const amountMatch = text.match(/จ\s*ํ\s*า\s*น\s*ว\s*น\s*เง\s*ิ\s*น\s*(\d+\.\d{2})\s*บ\s*า\s*ท/i);
+                const extracted = amountMatch ? parseFloat(amountMatch[1]) : null;
+                setExtractedAmount(extracted);
+
+                // ดึงวันที่และเวลา
+                let extractedDate: Date | null = null;
+                const thaiMonths = {
+                    "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
+                    "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
+                };
+
+                // ปรับ regex ให้ยืดหยุ่นกับช่องว่างและจุด
+                const thaiDateMatch = text.match(/ว\s*ั\s*น\s*ท\s*ี\s*่\s*ท\s*ํ\s*า\s*ร\s*า\s*ย\s*ก\s*า\s*ร\s*(\d{2})\s*([ก-ฮ]+\s*\.\s*[ก-ฮ]+\s*\.\s*)\s*(\d{4})\s*-\s*(\d{2}:\d{2})/i);
+                if (thaiDateMatch) {
+                    const [_, day, monthStr, year, timeStr] = thaiDateMatch;
+                    const monthClean = monthStr.replace(/\s*\.\s*/g, "").trim(); // ลบจุดและช่องว่าง
+                    const month = thaiMonths[monthClean as keyof typeof thaiMonths];
+                    if (month !== undefined) {
+                        const [hours, minutes] = timeStr.split(":").map(Number);
+                        extractedDate = new Date(parseInt(year) - 543, month, parseInt(day), hours, minutes);
+                    }
+                }
+
+                setExtractedDateTime(extractedDate);
+
+                // ดึงเลขที่อ้างอิง (ขยายความยาวสูงสุดเป็น 20)
+                const refMatch = text.match(/(?:ร\s*ห\s*ั\s*ส\s*อ\s*้\s*า\s*ง\s*อ\s*ิ\s*ง|Ref|Reference)[:\s]*([A-Za-z0-9]{10,20})/i);
+                const extractedRef = refMatch ? refMatch[1] : null;
+                setExtractedReference(extractedRef);
+            } catch (error) {
+                console.error("OCR Error:", error);
+                setSlipText("ไม่สามารถอ่านสลิปได้");
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -110,6 +156,39 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
         }
         if (!slipFile) {
             alert("กรุณาอัปโหลดสลิป");
+            return;
+        }
+
+        const enteredAmount = parseFloat(amount);
+        if (extractedAmount === null) {
+            alert("ไม่สามารถอ่านจำนวนเงินจากสลิปได้ กรุณาตรวจสอบสลิป");
+            return;
+        }
+        if (Math.abs(extractedAmount - enteredAmount) > 0.01) {
+            alert(`จำนวนเงินในสลิป (${extractedAmount} บาท) ไม่ตรงกับที่ระบุ (${enteredAmount} บาท)`);
+            return;
+        }
+
+        const now = new Date();
+        if (extractedDateTime === null) {
+            alert("ไม่สามารถอ่านวันที่และเวลาจากสลิปได้ กรุณาตรวจสอบสลิป");
+            return;
+        }
+        const timeDiff = (now.getTime() - extractedDateTime.getTime()) / (1000 * 60 * 60);
+        if (timeDiff < 0 || timeDiff > 24) {
+            alert("สลิปนี้เก่ากว่า 24 ชั่วโมงหรือวันที่ไม่ถูกต้อง กรุณาใช้สลิปการโอนล่าสุด");
+            return;
+        }
+
+        if (extractedReference === null) {
+            alert("ไม่สามารถอ่านเลขที่อ้างอิงจากสลิปได้ กรุณาตรวจสอบสลิป");
+            return;
+        }
+
+        const refCheckRes = await fetch(`/api/donation/check-reference?ref=${extractedReference}`);
+        const { exists } = await refCheckRes.json();
+        if (!refCheckRes.ok || exists) {
+            alert("เลขที่อ้างอิงนี้ถูกใช้ไปแล้ว กรุณาใช้สลิปการโอนใหม่");
             return;
         }
 
@@ -129,7 +208,7 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     requestId,
-                    amount: parseFloat(amount),
+                    amount: enteredAmount,
                     name,
                     email,
                     phone,
@@ -137,10 +216,10 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
                     taxReceipt,
                     isAnonymous,
                     slipUrl: url,
+                    referenceNumber: extractedReference,
                 }),
             });
             if (!donationRes.ok) throw new Error("Failed to record donation");
-            const donation = await donationRes.json();
 
             alert("บริจาคสำเร็จ! ขอบคุณที่ร่วมสนับสนุน");
             setAmount("1000");
@@ -152,6 +231,10 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
             setTaxReceipt(false);
             setIsAnonymous(false);
             setSlipFile(null);
+            setSlipText("");
+            setExtractedAmount(null);
+            setExtractedDateTime(null);
+            setExtractedReference(null);
         } catch (error) {
             console.error("Donation Error:", error);
             alert("เกิดข้อผิดพลาดในการบริจาค");
@@ -274,6 +357,14 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
                         onChange={handleSlipUpload}
                         className="form-input"
                     />
+                    {slipText && (
+                        <div className="text-sm mt-2">
+                            <p>ข้อความจากสลิป: {slipText}</p>
+                            {extractedAmount && <p>จำนวนเงิน: {extractedAmount} บาท</p>}
+                            {extractedDateTime && <p>วันที่/เวลา: {extractedDateTime.toLocaleString()}</p>}
+                            {extractedReference && <p>เลขที่อ้างอิง: {extractedReference}</p>}
+                        </div>
+                    )}
                 </div>
 
                 <div className="checkbox-group">
@@ -308,7 +399,7 @@ export default function DonationForm({ requestId, walletAddress }: { requestId: 
                     onClick={handleDonate}
                     disabled={loading}
                 >
-                    {loading ? "กำลังบันทึก..." : "บริจาคเลย"}
+                    {loading ? "กำลังตรวจสอบ..." : "บริจาคเลย"}
                 </button>
             </div>
         </div>

@@ -19,7 +19,6 @@ model User {
   resetTokenExpires DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @default(now()) @updatedAt
-  // ถ้า User ไม่ได้เกี่ยวข้องกับ DonationRequest ไม่ต้องเพิ่ม relation
 }
 
 model Creator {
@@ -40,7 +39,7 @@ model Creator {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   requests        DonationRequest[] // ความสัมพันธ์กับ DonationRequest
-  trackings       Tracking[] // ความสัมพันธ์กับ Tracking
+  trackings       Tracking[]        // ความสัมพันธ์กับ Tracking
 }
 
 model DonationRequest {
@@ -57,9 +56,13 @@ model DonationRequest {
   contactPhone  String
   contactEmail  String
   walletAddress String
-  creatorId     String // Type ต้องตรงกับ id ของ Creator (String)
+  creatorId     String
+  createdAt     DateTime   @default(now())
   donations     Donation[]
-  creator       Creator    @relation(fields: [creatorId], references: [id]) // เปลี่ยนจาก User เป็น Creator
+  creator       Creator    @relation(fields: [creatorId], references: [id])
+  budgets       Budget[]   // เพิ่มความสัมพันธ์กับ Budget
+  outcomes      Outcome[]  // เพิ่มความสัมพันธ์กับ Outcome
+  updates       Update[]   // เพิ่มความสัมพันธ์กับ Update
 }
 
 model Donation {
@@ -76,6 +79,7 @@ model Donation {
   createdAt       DateTime        @default(now())
   donationRequest DonationRequest @relation(fields: [requestId], references: [id])
   trackings       Tracking[]
+  referenceNumber String?         @unique
 }
 
 model Tracking {
@@ -101,4 +105,29 @@ model Story {
   caption   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Budget {
+  id              String          @id @default(uuid())
+  donationRequestId String
+  item            String
+  amount          Float
+  donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
+}
+
+model Outcome {
+  id              String          @id @default(uuid())
+  donationRequestId String
+  title           String
+  description     String
+  donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
+}
+
+model Update {
+  id              String          @id @default(uuid())
+  donationRequestId String
+  title           String
+  date            DateTime
+  description     String
+  donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
 }

@@ -1,37 +1,65 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-    const { requestId, amount, name, email, phone, message, taxReceipt, isAnonymous, slipUrl } = await request.json();
-
     try {
-        const donation = await prisma.donation.create({
-            data: {
-                id: `donation-${Date.now()}`,
-                requestId,
-                amount,
-                name,
-                email,
-                phone,
-                message,
-                taxReceipt,
-                isAnonymous,
-                slipUrl,
-            },
-        });
+        const body = await request.json();
+        const {
+            requestId,
+            amount,
+            name,
+            email,
+            phone,
+            message,
+            taxReceipt,
+            isAnonymous,
+            slipUrl,
+            referenceNumber,
+        } = body;
 
-        await prisma.donationRequest.update({
+        // ตรวจสอบ requestId
+        const donationRequest = await prisma.donationRequest.findUnique({
             where: { id: requestId },
-            data: {
-                currentAmount: { increment: amount },
-            },
+        });
+        if (!donationRequest) {
+            return NextResponse.json({ error: "Invalid requestId" }, { status: 400 });
+        }
+
+        // เริ่ม transaction
+        const result = await prisma.$transaction(async (prisma) => {
+            // บันทึก Donation
+            const donation = await prisma.donation.create({
+                data: {
+                    requestId,
+                    amount,
+                    name,
+                    email,
+                    phone,
+                    message,
+                    taxReceipt,
+                    isAnonymous,
+                    slipUrl,
+                    referenceNumber,
+                },
+            });
+
+            // อัปเดต currentAmount
+            const updatedRequest = await prisma.donationRequest.update({
+                where: { id: requestId },
+                data: {
+                    currentAmount: {
+                        increment: amount,
+                    },
+                },
+            });
+
+            return { donation, updatedRequest };
         });
 
-        return NextResponse.json(donation, { status: 201 });
+        console.log("Updated DonationRequest:", result.updatedRequest); // ดีบัก
+        return NextResponse.json(result.donation, { status: 201 });
     } catch (error) {
-        console.error("Error creating donation:", error);
+        console.error("Donation Error:", error);
         return NextResponse.json({ error: "Failed to record donation" }, { status: 500 });
     }
 }
