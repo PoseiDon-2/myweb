@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -8,43 +8,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 import "./page.css";
 
 export default function LoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [formData, setFormData] = useState({ email: "", password: "" });
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState("");
 
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (!formData.email || !formData.password) {
+            toast.error("กรุณากรอกอีเมลและรหัสผ่าน");
+            return;
+        }
+
         setIsLoading(true);
-        setError("");
 
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify(formData),
             });
 
             const data = await res.json();
 
-            if (res.ok) {
-                localStorage.setItem("token", data.token);
-                router.push("/");
-            } else {
-                setError(data.message);
-                setIsLoading(false);
+            if (!res.ok) {
+                throw new Error(data.message || "เกิดข้อผิดพลาดในการล็อกอิน");
             }
-        } catch {
-            setError("เกิดข้อผิดพลาดในการล็อกอิน");
+
+            localStorage.setItem("token", data.token);
+            toast.success("ล็อกอินสำเร็จ");
+            router.push(data.isCreator ? "/donation-request-form" : "/dashboard");
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            toast.error("เกิดข้อผิดพลาด", { description: errorMessage });
+        } finally {
             setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen p-4">
@@ -52,7 +63,7 @@ export default function LoginPage() {
                 type="button"
                 variant="ghost"
                 className="absolute top-4 left-4 p-2 text-gray-700 hover:bg-gray-100 rounded-full"
-                onClick={() => window.location.href = '/'}
+                onClick={() => router.push("/")}
             >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
@@ -71,10 +82,11 @@ export default function LoginPage() {
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
+                                name="email"
                                 type="email"
                                 placeholder="name@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={formData.email}
+                                onChange={handleChange}
                                 required
                             />
                         </div>
@@ -88,10 +100,11 @@ export default function LoginPage() {
                             <div className="relative">
                                 <Input
                                     id="password"
+                                    name="password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    value={formData.password}
+                                    onChange={handleChange}
                                     required
                                 />
                                 <Button
@@ -105,7 +118,6 @@ export default function LoginPage() {
                                 </Button>
                             </div>
                         </div>
-                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                     </CardContent>
                     <CardFooter className="flex flex-col space-y-4">
                         <Button type="submit" className="w-full" disabled={isLoading}>
@@ -121,7 +133,7 @@ export default function LoginPage() {
                         <div className="text-center text-sm">
                             ยังไม่มีบัญชีใช่ไหม?{" "}
                             <Link href="/register" className="text-primary hover:underline">
-                                Register
+                                สมัครสมาชิก
                             </Link>
                         </div>
                     </CardFooter>

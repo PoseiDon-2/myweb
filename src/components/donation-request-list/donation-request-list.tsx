@@ -1,4 +1,3 @@
-// components/donation-request-list/donation-request-list.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -55,22 +54,36 @@ export function DonationRequestList() {
     const [donationRequests, setDonationRequests] = useState<DonationRequest[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDonationRequests = async () => {
             try {
+                setLoading(true);
                 const response = await fetch(`/api/donation-requests?page=${currentPage}`);
                 if (!response.ok) throw new Error("Failed to fetch donation requests");
                 const data = await response.json();
-                setDonationRequests(data.donationRequests);
-                setTotalPages(data.totalPages);
+                setDonationRequests(data.donationRequests || []);
+                setTotalPages(data.totalPages || 1);
             } catch (error) {
                 console.error("Error fetching donation requests:", error);
+                setError("เกิดข้อผิดพลาดในการโหลดคำขอรับบริจาค");
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchDonationRequests();
     }, [currentPage]);
+
+    if (loading) {
+        return <div className="text-center py-8">กำลังโหลด...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center py-8 text-red-500">{error}</div>;
+    }
 
     if (donationRequests.length === 0) {
         return <div className="text-center py-8">ยังไม่มีคำขอรับบริจาคในขณะนี้</div>;
@@ -81,14 +94,19 @@ export function DonationRequestList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {donationRequests.map((request) => {
                     const daysRemaining = calculateDaysRemaining(request.deadline);
+                    const imageSrc = request.image && request.image.trim() !== "" ? request.image : "/placeholder.svg";
+
                     return (
                         <Card key={request.id} className="overflow-hidden flex flex-col">
                             <div className="relative h-48">
                                 <Image
-                                    src={request.image || "/placeholder.svg"}
+                                    src={imageSrc}
                                     alt={request.schoolName}
                                     fill
                                     className="object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "/placeholder.svg"; // Fallback ถ้าโหลดภาพล้มเหลว
+                                    }}
                                 />
                                 <div className="absolute top-2 right-2">
                                     <Badge variant="secondary" className="flex items-center gap-1 bg-white p-2">

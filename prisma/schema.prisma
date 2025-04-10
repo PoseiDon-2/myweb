@@ -19,10 +19,12 @@ model User {
   resetTokenExpires DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @default(now()) @updatedAt
+  creator           Creator?  @relation("UserToCreator") // ความสัมพันธ์กับ Creator
 }
 
 model Creator {
   id              String            @id @default(uuid())
+  userId          Int               @unique // เชื่อมโยงกับ User
   firstName       String
   lastName        String
   email           String            @unique
@@ -40,6 +42,7 @@ model Creator {
   updatedAt       DateTime          @updatedAt
   requests        DonationRequest[] // ความสัมพันธ์กับ DonationRequest
   trackings       Tracking[]        // ความสัมพันธ์กับ Tracking
+  user            User              @relation("UserToCreator", fields: [userId], references: [id])
 }
 
 model DonationRequest {
@@ -60,9 +63,9 @@ model DonationRequest {
   createdAt     DateTime   @default(now())
   donations     Donation[]
   creator       Creator    @relation(fields: [creatorId], references: [id])
-  budgets       Budget[]   // เพิ่มความสัมพันธ์กับ Budget
-  outcomes      Outcome[]  // เพิ่มความสัมพันธ์กับ Outcome
-  updates       Update[]   // เพิ่มความสัมพันธ์กับ Update
+  budgets       Budget[]
+  outcomes      Outcome[]
+  updates       Update[]
 }
 
 model Donation {

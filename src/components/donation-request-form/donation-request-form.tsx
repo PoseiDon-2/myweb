@@ -1,71 +1,169 @@
-"use client"
+"use client";
 
-import type React from "react"
-
+import React, { useState } from "react";
 import Image from "next/image";
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { th } from "date-fns/locale"
-import { CalendarIcon, ImagePlus } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
+import { CalendarIcon, ImagePlus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+interface FormData {
+    schoolName: string;
+    projectTitle: string;
+    description: string;
+    category: string;
+    targetAmount: string;
+    deadline: Date | undefined;
+    contactName: string;
+    contactPhone: string;
+    contactEmail: string;
+    image: File | null;
+}
 
 export default function DonationRequestForm() {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         schoolName: "",
         projectTitle: "",
         description: "",
         category: "",
         targetAmount: "",
-        deadline: undefined as Date | undefined,
+        deadline: undefined,
         contactName: "",
         contactPhone: "",
         contactEmail: "",
-        image: null as string | null,
-    })
+        image: null,
+    });
 
-    const [previewVisible, setPreviewVisible] = useState(false)
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
-    }
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleSelectChange = (name: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [name]: value }))
-    }
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleDateChange = (date: Date | undefined) => {
-        setFormData((prev) => ({ ...prev, deadline: date }))
-    }
+        setFormData((prev) => ({ ...prev, deadline: date }));
+    };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
+        const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader()
+            setFormData((prev) => ({ ...prev, image: file }));
+            const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData((prev) => ({ ...prev, image: reader.result as string }))
-            }
-            reader.readAsDataURL(file)
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
-    }
+    };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        // Here you would typically send the data to your backend
-        alert("คำขอรับบริจาคถูกส่งเรียบร้อยแล้ว!")
-    }
+    const validateForm = () => {
+        if (!formData.schoolName) return "กรุณากรอกชื่อโรงเรียน";
+        if (!formData.projectTitle) return "กรุณากรอกชื่อโครงการ";
+        if (!formData.description) return "กรุณากรอกรายละเอียด";
+        if (!formData.category) return "กรุณาเลือกหมวดหมู่";
+        if (!formData.targetAmount || Number(formData.targetAmount) <= 0)
+            return "กรุณากรอกจำนวนเงินที่ต้องการและต้องมากกว่า 0";
+        if (!formData.contactName) return "กรุณากรอกชื่อผู้ติดต่อ";
+        if (!formData.contactPhone || !/^\d{9,10}$/.test(formData.contactPhone))
+            return "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 ตัวเลข)";
+        if (!formData.contactEmail || !/\S+@\S+\.\S+/.test(formData.contactEmail))
+            return "กรุณากรอกอีเมลให้ถูกต้อง";
+        return null;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const error = validateForm();
+        if (error) {
+            toast.error("เกิดข้อผิดพลาด", {
+                description: error,
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const submissionData = new FormData();
+            submissionData.append("schoolName", formData.schoolName);
+            submissionData.append("projectTitle", formData.projectTitle);
+            submissionData.append("description", formData.description);
+            submissionData.append("category", formData.category);
+            submissionData.append("targetAmount", formData.targetAmount);
+            if (formData.deadline)
+                submissionData.append("deadline", formData.deadline.toISOString());
+            submissionData.append("contactName", formData.contactName);
+            submissionData.append("contactPhone", formData.contactPhone);
+            submissionData.append("contactEmail", formData.contactEmail);
+            if (formData.image) submissionData.append("image", formData.image);
+
+            const response = await fetch("/api/donation-requests", { // เปลี่ยนเป็น endpoint ที่ถูกต้อง
+                method: "POST",
+                body: submissionData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "การส่งคำขอล้มเหลว");
+            }
+
+            toast.success("สำเร็จ", {
+                description: "คำขอรับบริจาคถูกส่งเรียบร้อยแล้ว!",
+            });
+
+            setFormData({
+                schoolName: "",
+                projectTitle: "",
+                description: "",
+                category: "",
+                targetAmount: "",
+                deadline: undefined,
+                contactName: "",
+                contactPhone: "",
+                contactEmail: "",
+                image: null,
+            });
+            setImagePreview(null);
+            setPreviewVisible(false);
+        } catch (error: any) {
+            toast.error("เกิดข้อผิดพลาด", {
+                description: error.message || "ไม่สามารถส่งคำขอได้ กรุณาลองใหม่",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const togglePreview = () => {
-        setPreviewVisible(!previewVisible)
-    }
+        setPreviewVisible(!previewVisible);
+    };
 
     return (
         <div className="grid md:grid-cols-2 gap-8">
@@ -79,7 +177,7 @@ export default function DonationRequestForm() {
                             value={formData.schoolName}
                             onChange={handleChange}
                             placeholder="โรงเรียนของคุณ"
-                            required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -91,13 +189,16 @@ export default function DonationRequestForm() {
                             value={formData.projectTitle}
                             onChange={handleChange}
                             placeholder="ชื่อโครงการขอรับบริจาค"
-                            required
+                            disabled={isSubmitting}
                         />
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="category">หมวดหมู่</Label>
-                        <Select onValueChange={(value) => handleSelectChange("category", value)}>
+                        <Select
+                            onValueChange={(value) => handleSelectChange("category", value)}
+                            disabled={isSubmitting}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="เลือกหมวดหมู่" />
                             </SelectTrigger>
@@ -120,7 +221,7 @@ export default function DonationRequestForm() {
                             onChange={handleChange}
                             placeholder="อธิบายรายละเอียดของโครงการและความจำเป็นในการขอรับบริจาค"
                             rows={4}
-                            required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -133,7 +234,8 @@ export default function DonationRequestForm() {
                             value={formData.targetAmount}
                             onChange={handleChange}
                             placeholder="0.00"
-                            required
+                            min="1"
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -145,15 +247,26 @@ export default function DonationRequestForm() {
                                     variant="outline"
                                     className={cn(
                                         "w-full justify-start text-left font-normal",
-                                        !formData.deadline && "text-muted-foreground",
+                                        !formData.deadline && "text-muted-foreground"
                                     )}
+                                    disabled={isSubmitting}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {formData.deadline ? format(formData.deadline, "PPP", { locale: th }) : <span>เลือกวันที่</span>}
+                                    {formData.deadline ? (
+                                        format(formData.deadline, "PPP", { locale: th })
+                                    ) : (
+                                        <span>เลือกวันที่</span>
+                                    )}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={formData.deadline} onSelect={handleDateChange} initialFocus />
+                                <Calendar
+                                    mode="single"
+                                    selected={formData.deadline}
+                                    onSelect={handleDateChange}
+                                    initialFocus
+                                    disabled={isSubmitting}
+                                />
                             </PopoverContent>
                         </Popover>
                     </div>
@@ -166,7 +279,7 @@ export default function DonationRequestForm() {
                             value={formData.contactName}
                             onChange={handleChange}
                             placeholder="ชื่อ-นามสกุล"
-                            required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -179,7 +292,7 @@ export default function DonationRequestForm() {
                                 value={formData.contactPhone}
                                 onChange={handleChange}
                                 placeholder="0xx-xxx-xxxx"
-                                required
+                                disabled={isSubmitting}
                             />
                         </div>
                         <div className="space-y-2">
@@ -191,7 +304,7 @@ export default function DonationRequestForm() {
                                 value={formData.contactEmail}
                                 onChange={handleChange}
                                 placeholder="example@school.ac.th"
-                                required
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -199,45 +312,69 @@ export default function DonationRequestForm() {
                     <div className="space-y-2">
                         <Label htmlFor="image">รูปภาพประกอบ</Label>
                         <div className="border-2 border-dashed rounded-md p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
-                            <input type="file" id="image" className="hidden" accept="image/*" onChange={handleImageChange} />
+                            <input
+                                type="file"
+                                id="image"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                disabled={isSubmitting}
+                            />
                             <label htmlFor="image" className="cursor-pointer">
                                 <ImagePlus className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">คลิกเพื่ออัพโหลดรูปภาพ</p>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    คลิกเพื่ออัปโหลดรูปภาพ
+                                </p>
                             </label>
                         </div>
                     </div>
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="outline" onClick={togglePreview} className="bg-white flex-1">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={togglePreview}
+                            className="bg-white flex-1"
+                            disabled={isSubmitting}
+                        >
                             {previewVisible ? "ซ่อนตัวอย่าง" : "แสดงตัวอย่าง"}
                         </Button>
-                        <Button type="submit" className="flex-1 bg-primary hover:bg-primary-dark">
-                            ส่งคำขอรับบริจาค
+                        <Button
+                            type="submit"
+                            className="flex-1 bg-primary hover:bg-primary-dark"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? "กำลังส่ง..." : "ส่งคำขอรับบริจาค"}
                         </Button>
                     </div>
                 </form>
             </div>
 
-            <div className={cn(!previewVisible && "hidden md:block")}>
+            <div className={cn("mt-8 md:mt-0", !previewVisible && "hidden")}>
                 <h2 className="text-xl font-semibold mb-4">ตัวอย่างคำขอรับบริจาค</h2>
                 <Card>
                     <CardContent className="p-6">
-                        {formData.image && (
+                        {imagePreview ? (
                             <div className="mb-4 rounded-md overflow-hidden">
                                 <Image
-                                    src={formData.image || "/placeholder.svg"}
+                                    src={imagePreview}
                                     alt="รูปภาพประกอบ"
+                                    width={500}
+                                    height={280}
                                     className="w-full h-70 object-cover"
                                 />
                             </div>
-                        )}
-                        {!formData.image && (
+                        ) : (
                             <div className="mb-4 rounded-md bg-muted h-48 flex items-center justify-center">
                                 <p className="text-muted-foreground">ไม่มีรูปภาพ</p>
                             </div>
                         )}
-                        <h3 className="text-xl font-bold">{formData.projectTitle || "ชื่อโครงการ"}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">{formData.schoolName || "ชื่อโรงเรียน"}</p>
+                        <h3 className="text-xl font-bold">
+                            {formData.projectTitle || "ชื่อโครงการ"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                            {formData.schoolName || "ชื่อโรงเรียน"}
+                        </p>
                         <div className="mb-4">
                             <span className="inline-block bg-primary/10 text-primary rounded-full px-3 py-1 text-sm">
                                 {formData.category === "education"
@@ -253,18 +390,24 @@ export default function DonationRequestForm() {
                                                     : "หมวดหมู่"}
                             </span>
                         </div>
-                        <p className="mb-4">{formData.description || "รายละเอียดของโครงการ..."}</p>
+                        <p className="mb-4">
+                            {formData.description || "รายละเอียดของโครงการ..."}
+                        </p>
                         <div className="flex justify-between items-center mb-4">
                             <div>
                                 <p className="text-sm font-medium">เป้าหมาย</p>
                                 <p className="text-xl font-bold">
-                                    {formData.targetAmount ? `${Number.parseInt(formData.targetAmount).toLocaleString()} บาท` : "0 บาท"}
+                                    {formData.targetAmount
+                                        ? `${Number.parseInt(formData.targetAmount).toLocaleString()} บาท`
+                                        : "0 บาท"}
                                 </p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium">วันที่สิ้นสุด</p>
                                 <p className="text-sm">
-                                    {formData.deadline ? format(formData.deadline, "PPP", { locale: th }) : "ไม่ระบุ"}
+                                    {formData.deadline
+                                        ? format(formData.deadline, "PPP", { locale: th })
+                                        : "ไม่ระบุ"}
                                 </p>
                             </div>
                         </div>
@@ -281,6 +424,5 @@ export default function DonationRequestForm() {
                 </Card>
             </div>
         </div>
-    )
+    );
 }
-
