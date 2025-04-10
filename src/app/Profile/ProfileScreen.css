@@ -1,0 +1,34 @@
+/* src/app/Profile/ProfileScreen.css */
+@import "tailwindcss";
+
+/* ปุ่มลูกศรที่มุมซ้ายบน */
+button.ghost {
+  background-color: transparent;
+  border: none;
+  padding: 8px;
+  transition: background-color 0.3s ease;
+}
+
+button.ghost:hover {
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+}
+
+.arrow-left {
+  height: 24px;
+  width: 24px;
+}
+
+/* Card style */
+.card {
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* ✅ เว้นที่ด้านบนให้ Nav */
+.profile-page-container {
+  padding-top: 80px; /* ปรับตามความสูงจริงของ Navbar */
+}

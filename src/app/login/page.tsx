@@ -48,7 +48,7 @@ export default function LoginPage() {
 
             localStorage.setItem("token", data.token);
             toast.success("ล็อกอินสำเร็จ");
-            router.push(data.isCreator ? "/donation-request-form" : "/dashboard");
+            router.push(data.isCreator ? "/" : "/dashboard");
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Unknown error";
             toast.error("เกิดข้อผิดพลาด", { description: errorMessage });

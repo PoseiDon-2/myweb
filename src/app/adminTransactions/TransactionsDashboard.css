@@ -1,0 +1,169 @@
+/* โครงสร้างพื้นฐาน */
+.finance-dashboard {
+  font-family: 'Sarabun', sans-serif;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+/* Nav Bar */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-links { display: flex; gap: 20px; }
+.nav-link {
+  text-decoration: none;
+  color: #333;
+  padding: 8px 0;
+  transition: color 0.3s;
+}
+.nav-link:hover { color: #007bff; }
+.nav-link.active {
+  color: #007bff;
+  font-weight: bold;
+  position: relative;
+}
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -5px;
+  width: 100%; height: 2px;
+  background: #007bff;
+}
+
+.search-container {
+  display: flex; align-items: center;
+  border: 1px solid #ccc; border-radius: 5px; overflow: hidden;
+}
+.nav-search-input {
+  border: none; padding: 8px 10px; outline: none;
+  flex-grow: 1;
+}
+.nav-search-input::placeholder { color: #a0a0a0; }
+.nav-search-button {
+  background: transparent; border: none;
+  padding: 8px 10px; cursor: pointer;
+}
+.search-icon { width: 20px; height: 20px; color: #777; }
+
+/* เนื้อหาหลัก */
+.dashboard-content { padding: 20px; }
+
+/* Header + ปุ่มส่งออก */
+.page-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 20px;
+}
+.page-title {
+  font-size: 24px; font-weight: bold; color: #333;
+}
+.export-report-btn {
+  padding: 8px 16px; background: black; color: white;
+  border: none; border-radius: 6px; cursor: pointer;
+}
+
+/* แถบกรองสถานะ */
+.transaction-tabs {
+  display: flex; gap: 10px; margin-bottom: 20px;
+}
+.transaction-tabs .tab {
+  padding: 10px 16px;
+  background: white; border: 1px solid #ccc;
+  border-radius: 8px; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.transaction-tabs .tab.active {
+  background: black; color: white; border-color: black;
+}
+.transaction-tabs .tab:not(.active):hover {
+  background: #f0f0f0;
+}
+
+/* การ์ดสถิติ */
+.transaction-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin-bottom: 20px;
+}
+.transaction-stat-cards .card {
+  background: white; padding: 16px;
+  border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  display: flex; flex-direction: column;
+}
+.card-header { margin-bottom: 10px; }
+.card-header p { margin: 0; color: #666; }
+.card h2 { margin: 0; font-size: 28px; color: #333; }
+.card span { font-size: 0.85rem; }
+.change-positive { color: #5cb85c; }
+.change-negative { color: #d9534f; }
+
+/* ตารางธุรกรรม */
+.all-transactions-section {
+  background: white; padding: 20px;
+  border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+}
+.all-transactions-section .section-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 15px;
+}
+.all-transactions-section h3 {
+  margin: 0; font-size: 1.2rem; color: #333;
+}
+.total-count { font-weight: normal; color: #666; font-size: 0.9rem; }
+
+.table-controls {
+  display: flex; gap: 10px; align-items: center;
+}
+.table-search-input {
+  padding: 8px 12px; border: 1px solid #ddd;
+  border-radius: 6px; width: 250px;
+}
+.sort-dropdown {
+  display: flex; align-items: center;
+  border: 1px solid #ddd; border-radius: 6px;
+  padding: 8px 12px; cursor: pointer;
+  background: white; gap: 5px;
+}
+.sort-icon { width: 18px; height: 18px; color: #777; }
+
+.table-container { overflow-x: auto; }
+.transaction-table {
+  width: 100%; border-collapse: collapse; text-align: left;
+}
+.transaction-table th,
+.transaction-table td {
+  padding: 12px 15px; border-bottom: 1px solid #eee;
+}
+.transaction-table th {
+  background: #f8f8f8; color: #666; text-transform: uppercase;
+}
+.transaction-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+/* Tag สถานะ */
+.status-tag {
+  display: inline-block; padding: 4px 8px;
+  border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+}
+.status-tag.active {
+  background: #e8f5e9; color: #388e3c;
+}
+.status-tag.pending {
+  background: #fff4e5; color: #f0ad4e;
+}
+.status-tag.inactive {
+  background: #ffebee; color: #d32f2f;
+}
+
+/* ปุ่มเมนู … */
+.action-menu-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.2rem; color: #777;
+}

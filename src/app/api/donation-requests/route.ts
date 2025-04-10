@@ -1,7 +1,9 @@
+// src/app/api/donation-requests/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { v2 as cloudinary } from "cloudinary";
-import jwt from "jsonwebtoken";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,44 +11,54 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+export async function GET(request: NextRequest) {
+    const page = parseInt(request.nextUrl.searchParams.get("page") || "1");
+    const pageSize = 10; // จำนวนรายการต่อหน้า
+    const offset = (page - 1) * pageSize;
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const itemsPerPage = 6;
+    try {
+        const totalRequests = await prisma.donationRequest.count();
+        const donationRequests = await prisma.donationRequest.findMany({
+            skip: offset,
+            take: pageSize,
+            include: {
+                creator: {
+                    select: {
+                        schoolDistrict: true,
+                    },
+                },
+            },
+        });
 
-    const donationRequests = await prisma.donationRequest.findMany({
-        skip: (page - 1) * itemsPerPage,
-        take: itemsPerPage,
-        orderBy: { deadline: "desc" },
-        include: { creator: true },
-    });
+        const totalPages = Math.ceil(totalRequests / pageSize);
 
-    const totalItems = await prisma.donationRequest.count();
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-    return NextResponse.json({
-        donationRequests,
-        totalPages,
-        currentPage: page,
-    });
+        return NextResponse.json({
+            donationRequests,
+            totalPages,
+        });
+    } catch (error) {
+        return NextResponse.json({ message: "Failed to fetch data" }, { status: 500 });
+    }
 }
 
 export async function POST(request: NextRequest) {
     try {
-        // ดึง token จาก header
-        const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-        if (!token) {
+        const session = await getServerSession(authOptions);
+        console.log("Server Session:", session);
+
+        if (!session || !session.user.id) {
             return NextResponse.json({ message: "กรุณาล็อกอินก่อน" }, { status: 401 });
         }
 
-        // Verify token และดึง userId
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; email: string; isCreator: boolean };
-        const userId = decoded.userId;
+        if (session.user.role !== "CREATOR") {
+            return NextResponse.json(
+                { message: "เฉพาะผู้สร้างเท่านั้นที่สามารถสร้างคำขอได้" },
+                { status: 403 }
+            );
+        }
 
+        const userId = parseInt(session.user.id);
         const formData = await request.formData();
-
         const schoolName = formData.get("schoolName") as string;
         const projectTitle = formData.get("projectTitle") as string;
         const description = formData.get("description") as string;
@@ -59,19 +71,22 @@ export async function POST(request: NextRequest) {
         const contactPhone = formData.get("contactPhone") as string;
         const contactEmail = formData.get("contactEmail") as string;
         const image = formData.get("image") as File | null;
+        const walletAddress = formData.get("walletAddress") as string;
 
         if (
             !schoolName ||
             !projectTitle ||
             !description ||
             !category ||
-            !targetAmount ||
+            isNaN(targetAmount) ||
+            targetAmount <= 0 ||
             !contactName ||
             !contactPhone ||
-            !contactEmail
+            !contactEmail ||
+            !walletAddress
         ) {
             return NextResponse.json(
-                { message: "กรุณากรอกข้อมูลให้ครบถ้วน" },
+                { message: "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง" },
                 { status: 400 }
             );
         }
@@ -93,9 +108,8 @@ export async function POST(request: NextRequest) {
             imageUrl = (result as any).secure_url;
         }
 
-        // ตรวจสอบ Creator โดยใช้ userId
         let creator = await prisma.creator.findUnique({
-            where: { userId: userId },
+            where: { userId },
         });
 
         if (!creator) {
@@ -103,19 +117,17 @@ export async function POST(request: NextRequest) {
             if (!user) {
                 return NextResponse.json({ message: "ไม่พบผู้ใช้" }, { status: 404 });
             }
-
             creator = await prisma.creator.create({
                 data: {
-                    user: { connect: { id: userId } }, // เชื่อมกับ User
-                    firstName: user.fname, // ดึงจาก User
+                    userId,
+                    firstName: user.fname,
                     lastName: user.lname,
                     email: user.email,
-                    phone: contactPhone, // หรือจาก formData
-                    schoolName: schoolName,
-                    schoolDistrict: "Test District", // ปรับตามจริง
-                    position: "Teacher", // ปรับตามจริง
-                    schoolAddress: "123 Test Address", // ปรับตามจริง
-                    isVerified: false,
+                    phone: contactPhone,
+                    schoolName,
+                    schoolDistrict: "Unknown",
+                    position: "Creator",
+                    schoolAddress: "Unknown",
                     termsAccepted: true,
                     privacyAccepted: true,
                 },
@@ -135,7 +147,7 @@ export async function POST(request: NextRequest) {
                 contactPhone,
                 contactEmail,
                 image: imageUrl || null,
-                walletAddress: "default-wallet-address", // ปรับตามระบบจริง
+                walletAddress,
                 creatorId: creator.id,
             },
         });
@@ -151,4 +163,30 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+// Renamed to avoid conflict
+export async function GETCreatorRequests(request: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user.id) {
+        return NextResponse.json({ message: "กรุณาล็อกอินก่อน" }, { status: 401 });
+    }
+
+    const donationRequests = await prisma.donationRequest.findMany({
+        where: { creator: { userId: parseInt(session.user.id) } },
+        include: {
+            creator: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    schoolName: true,
+                },
+            },
+        },
+        orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ data: donationRequests }, { status: 200 });
 }

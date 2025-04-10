@@ -1,0 +1,380 @@
+/* General styles for the dashboard */
+.admin-dashboard {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #f0f2f5; /* Light grey background */
+    min-height: 100vh;
+    padding: 0; /* Remove initial padding, content-area will handle it */
+  }
+  
+  /* Global Nav Bar Styles (คงเดิมจากโจทย์ที่แล้ว) */
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: #333;
+    padding: 8px 0;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: #007bff;
+  }
+  
+  .nav-link.active {
+    color: #007bff;
+    font-weight: bold;
+    position: relative;
+  }
+  
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background-color: #007bff;
+  }
+  
+  .search-container {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .nav-search-input {
+    border: none;
+    padding: 8px 10px;
+    outline: none;
+    flex-grow: 1;
+  }
+  
+  .nav-search-input::placeholder {
+    color: #a0a0a0;
+  }
+  
+  .nav-search-button {
+    background-color: transparent;
+    border: none;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .nav-search-button:hover .search-icon {
+    color: #007bff;
+  }
+  
+  .search-icon {
+    width: 20px;
+    height: 20px;
+    color: #777;
+  }
+  
+  /* User Dashboard Specific Content Area */
+  .user-dashboard-content-area {
+    padding: 20px; /* เพิ่ม padding ให้กับเนื้อหาหลักของหน้านี้ */
+  }
+  
+  /* ส่วนหัวของหน้า (Page-specific header) */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .page-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .add-user-btn {
+    padding: 8px 16px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* ระยะห่างระหว่างไอคอนกับข้อความ */
+  }
+  
+  .add-user-btn .icon {
+    width: 20px;
+    height: 20px;
+    color: white;
+    stroke-width: 2;
+  }
+  
+  /* แท็บประเภทผู้ใช้งาน */
+  .user-type-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .user-type-tabs .tab {
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+  
+  .user-type-tabs .tab.active {
+    background-color: black;
+    color: white;
+    border-color: black;
+  }
+  
+  .user-type-tabs .tab:hover:not(.active) {
+      background-color: #f0f0f0;
+  }
+  
+  
+  /* แผงสถิติผู้ใช้งาน */
+  .user-stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* ให้การ์ดขึ้นบรรทัดใหม่เมื่อหน้าจอเล็กลง */
+  }
+  
+  .user-stat-cards .card {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .user-stat-cards .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+  }
+  
+  .user-stat-cards .card-header p {
+      margin: 0;
+      color: #666;
+      font-size: 0.9rem;
+  }
+  
+  .user-stat-cards .stat-icon {
+      width: 24px;
+      height: 24px;
+      color: #999; /* ปรับสีไอคอนสถิติ */
+  }
+  
+  .user-stat-cards .card h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+  }
+  
+  .user-stat-cards .card span {
+    font-size: 0.85rem;
+  }
+  
+  .change-positive {
+    color: #5cb85c; /* สีเขียว */
+  }
+  
+  .change-negative {
+    color: #d9534f; /* สีแดง */
+  }
+  
+  .change-neutral {
+      color: #777; /* สีเทา */
+  }
+  
+  
+  /* ส่วนตารางผู้ใช้งานทั้งหมด */
+  .all-users-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  }
+  
+  .all-users-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* ทำให้หัวข้อขึ้นบรรทัดใหม่เมื่อหน้าจอเล็กลง */
+    gap: 10px;
+  }
+  
+  .all-users-section .section-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .all-users-section .total-count {
+    font-weight: normal;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .table-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap; /* ทำให้ปุ่มควบคุมขึ้นบรรทัดใหม่เมื่อหน้าจอเล็กลง */
+  }
+  
+  .table-search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 250px;
+    font-size: 0.9rem;
+  }
+  
+  .sort-dropdown {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: white;
+    font-size: 0.9rem;
+    color: #555;
+    gap: 5px;
+  }
+  
+  .sort-dropdown:hover {
+      background-color: #f5f5f5;
+  }
+  
+  .sort-icon {
+    width: 18px;
+    height: 18px;
+    color: #777;
+  }
+  
+  .user-table-container {
+    overflow-x: auto; /* ทำให้ตารางเลื่อนได้ในแนวนอนหากเนื้อหาเกิน */
+  }
+  
+  .user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  
+  .user-table th,
+  .user-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .user-table th {
+    background-color: #f8f8f8;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  
+  .user-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .user-table tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  /* Checkbox styling */
+  .user-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  
+  /* Role and Status Tags */
+  .role-tag,
+  .status-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap; /* ป้องกันการขึ้นบรรทัดใหม่ของ tag */
+  }
+  
+  .role-tag.admin {
+    background-color: #e0f2f7; /* Light blue */
+    color: #0288d1; /* Darker blue */
+  }
+  
+  .role-tag.school {
+    background-color: #ffe0b2; /* Light orange */
+    color: #fb8c00; /* Darker orange */
+  }
+  
+  .role-tag.donor {
+    background-color: #e8f5e9; /* Light green */
+    color: #388e3c; /* Darker green */
+  }
+  
+  .status-tag.active {
+    background-color: #e8f5e9; /* Light green */
+    color: #388e3c; /* Darker green */
+  }
+  
+  .status-tag.inactive {
+    background-color: #ffebee; /* Light red */
+    color: #d32f2f; /* Darker red */
+  }
+  
+  /* Action menu button (ellipsis) */
+  .action-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .action-menu-btn:hover {
+    background-color: #eee;
+  }
+  
+  .ellipsis-icon {
+    width: 20px;
+    height: 20px;
+    color: #777;
+  }

@@ -66,8 +66,8 @@ export function DonationRequestList() {
                 const data = await response.json();
                 setDonationRequests(data.donationRequests || []);
                 setTotalPages(data.totalPages || 1);
-            } catch (error) {
-                console.error("Error fetching donation requests:", error);
+            } catch (err) {
+                console.error("Error fetching donation requests:", err);
                 setError("เกิดข้อผิดพลาดในการโหลดคำขอรับบริจาค");
             } finally {
                 setLoading(false);
@@ -78,15 +78,15 @@ export function DonationRequestList() {
     }, [currentPage]);
 
     if (loading) {
-        return <div className="text-center py-8">กำลังโหลด...</div>;
+        return <div className="text-center py-12 text-gray-600 text-lg animate-pulse">กำลังโหลดข้อมูลคำขอรับบริจาค...</div>;
     }
 
     if (error) {
-        return <div className="text-center py-8 text-red-500">{error}</div>;
+        return <div className="text-center py-8 text-red-500 font-medium">{error}</div>;
     }
 
     if (donationRequests.length === 0) {
-        return <div className="text-center py-8">ยังไม่มีคำขอรับบริจาคในขณะนี้</div>;
+        return <div className="text-center py-8 text-gray-500">ยังไม่มีคำขอรับบริจาคในขณะนี้</div>;
     }
 
     return (
@@ -94,7 +94,7 @@ export function DonationRequestList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {donationRequests.map((request) => {
                     const daysRemaining = calculateDaysRemaining(request.deadline);
-                    const imageSrc = request.image && request.image.trim() !== "" ? request.image : "/placeholder.svg";
+                    const imageSrc = request.image?.trim() ? request.image : "/placeholder.svg";
 
                     return (
                         <Card key={request.id} className="overflow-hidden flex flex-col">
@@ -105,7 +105,8 @@ export function DonationRequestList() {
                                     fill
                                     className="object-cover"
                                     onError={(e) => {
-                                        e.currentTarget.src = "/placeholder.svg"; // Fallback ถ้าโหลดภาพล้มเหลว
+                                        const target = e.currentTarget as HTMLImageElement;
+                                        target.src = "/placeholder.svg";
                                     }}
                                 />
                                 <div className="absolute top-2 right-2">
@@ -118,7 +119,7 @@ export function DonationRequestList() {
 
                             <CardHeader>
                                 <CardTitle className="text-xl">{request.schoolName}</CardTitle>
-                                <CardDescription className="flex items-center gap-1">
+                                <CardDescription className="flex items-center gap-1 text-sm text-gray-600">
                                     <MapPin className="h-3 w-3" /> {request.creator?.schoolDistrict || "ไม่ระบุ"}
                                 </CardDescription>
                             </CardHeader>
@@ -126,24 +127,24 @@ export function DonationRequestList() {
                             <CardContent className="flex-1">
                                 <div className="space-y-4">
                                     <Badge className="bg-orange-400 text-white p-2">{request.category}</Badge>
-                                    <p className="text-sm line-clamp-3">{request.description}</p>
+                                    <p className="text-sm text-gray-700 line-clamp-3">{request.description}</p>
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span>ยอดบริจาค</span>
-                                            <span className="font-medium">
+                                            <span className="font-medium text-gray-800">
                                                 {request.currentAmount.toLocaleString()} / {request.targetAmount.toLocaleString()} บาท
                                             </span>
                                         </div>
                                         <Progress value={(request.currentAmount / request.targetAmount) * 100} />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">
-                                            <Calendar className="h-3 w-3 text-muted-foreground" />
-                                            <span className="text-muted-foreground">เหลือ {daysRemaining} วัน</span>
+                                            <Calendar className="h-3 w-3" />
+                                            <span>เหลือ {daysRemaining} วัน</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <Users className="h-3 w-3 text-muted-foreground" />
-                                            <span className="text-muted-foreground">นักเรียน ไม่ระบุ</span>
+                                            <Users className="h-3 w-3" />
+                                            <span>นักเรียน ไม่ระบุ</span>
                                         </div>
                                     </div>
                                 </div>
@@ -151,7 +152,7 @@ export function DonationRequestList() {
 
                             <CardFooter>
                                 <Link href={`/donationDetails?id=${request.id}`}>
-                                    <Button className="w-full bg-blue-500 text-white">
+                                    <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">
                                         ดูรายละเอียด <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
@@ -173,8 +174,8 @@ export function DonationRequestList() {
                         />
                     </PaginationItem>
 
-                    {Array.from({ length: totalPages }).map((_, index) => (
-                        <PaginationItem key={index}>
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <PaginationItem key={`page-${index + 1}`}>
                             <PaginationLink
                                 href="#"
                                 isActive={currentPage === index + 1}
@@ -202,3 +203,5 @@ export function DonationRequestList() {
         </div>
     );
 }
+
+export default DonationRequestList;

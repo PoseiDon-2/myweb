@@ -27,8 +27,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'กรุณายืนยัน OTP ก่อนล็อกอิน' }, { status: 403 });
         }
 
+        // สร้าง JWT token โดยเพิ่ม role ลงไปใน payload
         const token = jwt.sign(
-            { userId: user.id, email: user.email, isCreator: !!user.creator, creatorId: user.creator ? (user.creator as { id: string }).id : null },
+            {
+                userId: user.id,
+                email: user.email,
+                role: user.role,  // เพิ่ม role ของผู้ใช้
+                isCreator: !!user.creator,
+                creatorId: user.creator ? (user.creator as { id: string }).id : null,
+            },
             JWT_SECRET,
             { expiresIn: '1h' }
         );
@@ -38,6 +45,7 @@ export async function POST(request: Request) {
             userId: user.id,
             isCreator: !!user.creator,
             creatorId: user.creator ? (user.creator as { id: string }).id : null,
+            role: user.role, // ส่ง role กลับไปใน response
             token,
         });
     } catch (error) {

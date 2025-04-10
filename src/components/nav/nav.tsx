@@ -9,6 +9,7 @@ function Nav() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [username, setUsername] = useState(""); // เพิ่ม state สำหรับชื่อผู้ใช้
+    const [role, setRole] = useState(""); // เพิ่ม state สำหรับบทบาท (Role)
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -19,15 +20,19 @@ function Nav() {
                 const decoded = jwt.decode(token);
                 if (typeof decoded !== "string" && decoded?.email) {
                     setUsername(decoded.email.split("@")[0] || "User"); // ใช้ส่วนก่อน @ เป็น username
+                    setRole(decoded?.role || "USER"); // ดึง Role จาก token
                 } else {
                     setUsername("User");
+                    setRole("USER");
                 }
             } catch (err) {
                 console.error("Error decoding token:", err);
                 setUsername("User");
+                setRole("USER");
             }
         } else {
             setIsLoggedIn(false);
+            setRole("USER");
         }
     }, []);
 
@@ -40,6 +45,7 @@ function Nav() {
         setIsLoggedIn(false);
         setDropdownOpen(false);
         setUsername("");
+        setRole("USER");
     };
 
     return (
@@ -49,8 +55,16 @@ function Nav() {
             </Link>
             <ul className="menu">
                 <li><Link href="/donationRequestsPage">คำขอรับบริจาค</Link></li>
-                <li><Link href="#">วิธีใช้งาน</Link></li>
+                <li><Link href="">วิธีใช้งาน</Link></li>
                 <li><Link href="#">ติดต่อเรา</Link></li>
+                {/* เมนูสำหรับ Admin */}
+                {role === "ADMIN" && (
+                    <li><Link href="/adminPage">แอดมิน</Link></li>
+                )}
+                {/* เมนูสำหรับ Creator */}
+                {role === "CREATOR" && (
+                    <li><Link href="/donation-requests/new">ผู้สร้าง</Link></li>
+                )}
             </ul>
             <div className="auth-buttons">
                 {isLoggedIn ? (
@@ -64,7 +78,7 @@ function Nav() {
                         </div>
                         {dropdownOpen && (
                             <ul className="dropdown-menu">
-                                <li><Link href="#">โปรไฟล์</Link></li>
+                                <li><Link href="/Profile">โปรไฟล์</Link></li>
                                 <li><Link href="#">ประวัติการบริจาค</Link></li>
                                 <li><Link href="#">การติดตาม</Link></li>
                                 <li>
