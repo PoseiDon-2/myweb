@@ -19,12 +19,13 @@ model User {
   resetTokenExpires DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @default(now()) @updatedAt
-  creator           Creator?  @relation("UserToCreator") // ความสัมพันธ์กับ Creator
+  role              Role      @default(USER)
+  creator           Creator?  @relation("UserToCreator")
 }
 
 model Creator {
   id              String            @id @default(uuid())
-  userId          Int               @unique // เชื่อมโยงกับ User
+  userId          Int               @unique
   firstName       String
   lastName        String
   email           String            @unique
@@ -40,8 +41,8 @@ model Creator {
   privacyAccepted Boolean           @default(false)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  requests        DonationRequest[] // ความสัมพันธ์กับ DonationRequest
-  trackings       Tracking[]        // ความสัมพันธ์กับ Tracking
+  requests        DonationRequest[]
+  trackings       Tracking[]
   user            User              @relation("UserToCreator", fields: [userId], references: [id])
 }
 
@@ -87,27 +88,15 @@ model Donation {
 
 model Tracking {
   id         String    @id @default(uuid())
-  type       String // "donation" หรือ "creator"
-  donationId String? // อ้างอิง Donation (nullable)
-  creatorId  String? // อ้างอิง Creator (nullable)
-  status     String // "pending", "completed", "rejected"
+  type       String
+  donationId String?
+  creatorId  String?
+  status     String
   details    String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   donation   Donation? @relation(fields: [donationId], references: [id])
   creator    Creator?  @relation(fields: [creatorId], references: [id])
-}
-
-model Story {
-  id        String   @id @default(uuid())
-  title     String
-  thumbnail String
-  media     String
-  type      String // "image" หรือ "video"
-  videoUrl  String?
-  caption   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Budget {
@@ -133,4 +122,10 @@ model Update {
   date            DateTime
   description     String
   donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  CREATOR
+  USER
 }

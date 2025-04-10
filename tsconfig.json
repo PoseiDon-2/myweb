@@ -14,13 +14,14 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".", // เพิ่มบรรทัดนี้
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"] // ปรับจาก "./src/*" เป็น "src/*" เพราะมี baseUrl แล้ว
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/test-db/route.js"],

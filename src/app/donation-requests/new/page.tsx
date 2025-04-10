@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Nav from "@/components/nav/nav";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +28,7 @@ import { th } from "date-fns/locale";
 import { CalendarIcon, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import "./page.css";
 
 interface FormData {
     schoolName: string;
@@ -36,10 +40,13 @@ interface FormData {
     contactName: string;
     contactPhone: string;
     contactEmail: string;
+    walletAddress: string;
     image: File | null;
 }
 
 export default function DonationRequestForm() {
+    const router = useRouter();
+    const { data: session, status } = useSession();
     const [formData, setFormData] = useState<FormData>({
         schoolName: "",
         projectTitle: "",
@@ -50,12 +57,24 @@ export default function DonationRequestForm() {
         contactName: "",
         contactPhone: "",
         contactEmail: "",
+        walletAddress: "",
         image: null,
     });
-
     const [previewVisible, setPreviewVisible] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (status === "loading") {
+        return <p className="text-center py-4">กำลังโหลด...</p>;
+    }
+    if (status === "unauthenticated") {
+        router.push("/login");
+        return null;
+    }
+    if (session?.user.role !== "CREATOR") {
+        router.push("/dashboard");
+        return <p className="text-center py-4">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>;
+    }
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -64,8 +83,8 @@ export default function DonationRequestForm() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSelectChange = (name: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    const handleSelectChange = (value: string) => {
+        setFormData((prev) => ({ ...prev, category: value }));
     };
 
     const handleDateChange = (date: Date | undefined) => {
@@ -84,7 +103,7 @@ export default function DonationRequestForm() {
         }
     };
 
-    const validateForm = () => {
+    const validateForm = (): string | null => {
         if (!formData.schoolName) return "กรุณากรอกชื่อโรงเรียน";
         if (!formData.projectTitle) return "กรุณากรอกชื่อโครงการ";
         if (!formData.description) return "กรุณากรอกรายละเอียด";
@@ -96,6 +115,7 @@ export default function DonationRequestForm() {
             return "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 ตัวเลข)";
         if (!formData.contactEmail || !/\S+@\S+\.\S+/.test(formData.contactEmail))
             return "กรุณากรอกอีเมลให้ถูกต้อง";
+        if (!formData.walletAddress) return "กรุณากรอกที่อยู่กระเป๋าเงิน";
         return null;
     };
 
@@ -103,9 +123,7 @@ export default function DonationRequestForm() {
         e.preventDefault();
         const error = validateForm();
         if (error) {
-            toast.error("เกิดข้อผิดพลาด", {
-                description: error,
-            });
+            toast.error("เกิดข้อผิดพลาด", { description: error });
             return;
         }
 
@@ -117,21 +135,28 @@ export default function DonationRequestForm() {
             submissionData.append("description", formData.description);
             submissionData.append("category", formData.category);
             submissionData.append("targetAmount", formData.targetAmount);
-            if (formData.deadline)
+            if (formData.deadline) {
                 submissionData.append("deadline", formData.deadline.toISOString());
+            }
             submissionData.append("contactName", formData.contactName);
             submissionData.append("contactPhone", formData.contactPhone);
             submissionData.append("contactEmail", formData.contactEmail);
-            if (formData.image) submissionData.append("image", formData.image);
+            submissionData.append("walletAddress", formData.walletAddress);
+            if (formData.image) {
+                submissionData.append("image", formData.image);
+            }
 
-            const response = await fetch("/api/donation-requests", { // เปลี่ยนเป็น endpoint ที่ถูกต้อง
+            const response = await fetch("/api/donation-requests", {
                 method: "POST",
                 body: submissionData,
+                credentials: "include", // ส่ง session cookie
             });
 
+            const responseData = await response.json();
+            console.log("API Response:", responseData);
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "การส่งคำขอล้มเหลว");
+                throw new Error(responseData.message || "การส่งคำขอล้มเหลว");
             }
 
             toast.success("สำเร็จ", {
@@ -148,11 +173,14 @@ export default function DonationRequestForm() {
                 contactName: "",
                 contactPhone: "",
                 contactEmail: "",
+                walletAddress: "",
                 image: null,
             });
             setImagePreview(null);
             setPreviewVisible(false);
+            router.push("/dashboard");
         } catch (error: any) {
+            console.error("Submit Error:", error);
             toast.error("เกิดข้อผิดพลาด", {
                 description: error.message || "ไม่สามารถส่งคำขอได้ กรุณาลองใหม่",
             });
@@ -166,8 +194,9 @@ export default function DonationRequestForm() {
     };
 
     return (
-        <div className="grid md:grid-cols-2 gap-8">
-            <div>
+        <div className="grid md:grid-cols-2 gap-8 p-4">
+            <Nav />
+            <div className="mt-20">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="schoolName">ชื่อโรงเรียน</Label>
@@ -180,7 +209,6 @@ export default function DonationRequestForm() {
                             disabled={isSubmitting}
                         />
                     </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="projectTitle">ชื่อโครงการ</Label>
                         <Input
@@ -192,11 +220,22 @@ export default function DonationRequestForm() {
                             disabled={isSubmitting}
                         />
                     </div>
-
+                    <div className="space-y-2">
+                        <Label htmlFor="description">รายละเอียด</Label>
+                        <Textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            placeholder="อธิบายรายละเอียดของโครงการ"
+                            rows={4}
+                            disabled={isSubmitting}
+                        />
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="category">หมวดหมู่</Label>
                         <Select
-                            onValueChange={(value) => handleSelectChange("category", value)}
+                            onValueChange={handleSelectChange}
                             disabled={isSubmitting}
                         >
                             <SelectTrigger>
@@ -211,20 +250,6 @@ export default function DonationRequestForm() {
                             </SelectContent>
                         </Select>
                     </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="description">รายละเอียด</Label>
-                        <Textarea
-                            id="description"
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            placeholder="อธิบายรายละเอียดของโครงการและความจำเป็นในการขอรับบริจาค"
-                            rows={4}
-                            disabled={isSubmitting}
-                        />
-                    </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="targetAmount">จำนวนเงินที่ต้องการ (บาท)</Label>
                         <Input
@@ -238,11 +263,10 @@ export default function DonationRequestForm() {
                             disabled={isSubmitting}
                         />
                     </div>
-
                     <div className="space-y-2">
                         <Label>วันที่สิ้นสุดโครงการ</Label>
                         <Popover>
-                            <PopoverTrigger asChild className="bg-white">
+                            <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
                                     className={cn(
@@ -270,7 +294,6 @@ export default function DonationRequestForm() {
                             </PopoverContent>
                         </Popover>
                     </div>
-
                     <div className="space-y-2">
                         <Label htmlFor="contactName">ชื่อผู้ติดต่อ</Label>
                         <Input
@@ -282,33 +305,40 @@ export default function DonationRequestForm() {
                             disabled={isSubmitting}
                         />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="contactPhone">เบอร์โทรศัพท์</Label>
-                            <Input
-                                id="contactPhone"
-                                name="contactPhone"
-                                value={formData.contactPhone}
-                                onChange={handleChange}
-                                placeholder="0xx-xxx-xxxx"
-                                disabled={isSubmitting}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="contactEmail">อีเมล</Label>
-                            <Input
-                                id="contactEmail"
-                                name="contactEmail"
-                                type="email"
-                                value={formData.contactEmail}
-                                onChange={handleChange}
-                                placeholder="example@school.ac.th"
-                                disabled={isSubmitting}
-                            />
-                        </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="contactPhone">เบอร์โทรศัพท์Drawing</Label>
+                        <Input
+                            id="contactPhone"
+                            name="contactPhone"
+                            value={formData.contactPhone}
+                            onChange={handleChange}
+                            placeholder="0xx-xxx-xxxx"
+                            disabled={isSubmitting}
+                        />
                     </div>
-
+                    <div className="space-y-2">
+                        <Label htmlFor="contactEmail">อีเมล</Label>
+                        <Input
+                            id="contactEmail"
+                            name="contactEmail"
+                            type="email"
+                            value={formData.contactEmail}
+                            onChange={handleChange}
+                            placeholder="example@school.ac.th"
+                            disabled={isSubmitting}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="walletAddress">ที่อยู่กระเป๋าเงิน</Label>
+                        <Input
+                            id="walletAddress"
+                            name="walletAddress"
+                            value={formData.walletAddress}
+                            onChange={handleChange}
+                            placeholder="ที่อยู่สำหรับรับบริจาค"
+                            disabled={isSubmitting}
+                        />
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="image">รูปภาพประกอบ</Label>
                         <div className="border-2 border-dashed rounded-md p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
@@ -328,13 +358,12 @@ export default function DonationRequestForm() {
                             </label>
                         </div>
                     </div>
-
                     <div className="flex gap-4">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={togglePreview}
-                            className="bg-white flex-1"
+                            className="flex-1"
                             disabled={isSubmitting}
                         >
                             {previewVisible ? "ซ่อนตัวอย่าง" : "แสดงตัวอย่าง"}
@@ -349,7 +378,6 @@ export default function DonationRequestForm() {
                     </div>
                 </form>
             </div>
-
             <div className={cn("mt-8 md:mt-0", !previewVisible && "hidden")}>
                 <h2 className="text-xl font-semibold mb-4">ตัวอย่างคำขอรับบริจาค</h2>
                 <Card>
@@ -380,14 +408,14 @@ export default function DonationRequestForm() {
                                 {formData.category === "education"
                                     ? "อุปกรณ์การศึกษา"
                                     : formData.category === "sports"
-                                        ? "อุปกรณ์กีฬา"
-                                        : formData.category === "infrastructure"
-                                            ? "สิ่งก่อสร้าง"
-                                            : formData.category === "scholarship"
-                                                ? "ทุนการศึกษา"
-                                                : formData.category === "other"
-                                                    ? "อื่นๆ"
-                                                    : "หมวดหมู่"}
+                                    ? "อุปกรณ์กีฬา"
+                                    : formData.category === "infrastructure"
+                                    ? "สิ่งก่อสร้าง"
+                                    : formData.category === "scholarship"
+                                    ? "ทุนการศึกษา"
+                                    : formData.category === "other"
+                                    ? "อื่นๆ"
+                                    : "หมวดหมู่"}
                             </span>
                         </div>
                         <p className="mb-4">
@@ -419,6 +447,9 @@ export default function DonationRequestForm() {
                                 <span>•</span>
                                 <p>{formData.contactEmail || "อีเมล"}</p>
                             </div>
+                            <p className="text-sm mt-2">
+                                Wallet: {formData.walletAddress || "ที่อยู่กระเป๋าเงิน"}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
