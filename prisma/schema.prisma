@@ -7,18 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model budget {
-  id                String @id
-  donationRequestId String
-  item              String
-  amount            Float
-
-  @@index([donationRequestId], map: "Budget_donationRequestId_fkey")
+model User {
+  id                Int       @id @default(autoincrement())
+  fname             String
+  lname             String
+  email             String    @unique
+  password          String
+  otp               String?
+  isVerified        Boolean   @default(false)
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
+  creator           Creator?  @relation("UserToCreator") // ความสัมพันธ์กับ Creator
 }
 
-model creator {
-  id              String   @id
-  userId          Int      @unique(map: "Creator_userId_key")
+model Creator {
+  id              String            @id @default(uuid())
+  userId          Int               @unique // เชื่อมโยงกับ User
   firstName       String
   lastName        String
   email           String   @unique(map: "Creator_email_key")
@@ -29,28 +35,14 @@ model creator {
   schoolAddress   String   @db.Text
   licenseFileUrl  String?
   positionFileUrl String?
-  isVerified      Boolean  @default(false)
-  termsAccepted   Boolean  @default(false)
-  privacyAccepted Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime
-}
-
-model donation {
-  id              String   @id
-  requestId       String
-  amount          Float
-  name            String
-  email           String
-  phone           String
-  message         String?
-  taxReceipt      Boolean  @default(false)
-  isAnonymous     Boolean  @default(false)
-  slipUrl         String?
-  createdAt       DateTime @default(now())
-  referenceNumber String?  @unique(map: "Donation_referenceNumber_key")
-
-  @@index([requestId], map: "Donation_requestId_fkey")
+  isVerified      Boolean           @default(false)
+  termsAccepted   Boolean           @default(false)
+  privacyAccepted Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  requests        DonationRequest[] // ความสัมพันธ์กับ DonationRequest
+  trackings       Tracking[]        // ความสัมพันธ์กับ Tracking
+  user            User              @relation("UserToCreator", fields: [userId], references: [id])
 }
 
 model donationrequest {
@@ -82,18 +74,29 @@ model outcome {
   @@index([donationRequestId], map: "Outcome_donationRequestId_fkey")
 }
 
-model tracking {
-  id         String   @id
-  type       String
-  donationId String?
-  creatorId  String?
-  status     String
+model Tracking {
+  id         String    @id @default(uuid())
+  type       String // "donation" หรือ "creator"
+  donationId String? // อ้างอิง Donation (nullable)
+  creatorId  String? // อ้างอิง Creator (nullable)
+  status     String // "pending", "completed", "rejected"
   details    String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  donation   Donation? @relation(fields: [donationId], references: [id])
+  creator    Creator?  @relation(fields: [creatorId], references: [id])
+}
 
-  @@index([creatorId], map: "Tracking_creatorId_fkey")
-  @@index([donationId], map: "Tracking_donationId_fkey")
+model Story {
+  id        String   @id @default(uuid())
+  title     String
+  thumbnail String
+  media     String
+  type      String // "image" หรือ "video"
+  videoUrl  String?
+  caption   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model update {
@@ -106,23 +109,19 @@ model update {
   @@index([donationRequestId], map: "Update_donationRequestId_fkey")
 }
 
-model user {
-  id                Int       @id @default(autoincrement())
-  fname             String
-  lname             String
-  email             String    @unique(map: "User_email_key")
-  password          String
-  otp               String?
-  isVerified        Boolean   @default(false)
-  resetToken        String?
-  resetTokenExpires DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @default(now())
-  role              user_role @default(USER)
+model Outcome {
+  id              String          @id @default(uuid())
+  donationRequestId String
+  title           String
+  description     String
+  donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
 }
 
-enum user_role {
-  ADMIN
-  CREATOR
-  USER
+model Update {
+  id              String          @id @default(uuid())
+  donationRequestId String
+  title           String
+  date            DateTime
+  description     String
+  donationRequest DonationRequest @relation(fields: [donationRequestId], references: [id])
 }
